@@ -1804,15 +1804,19 @@ function isOnButton(x, y) {
 }
 
 window.addEventListener('touchstart', e => {
+    // Block browser pinch-zoom / scroll during gameplay so multi-finger works
+    if (e.touches.length >= 2) { e.preventDefault(); return; }
     for (const t of e.changedTouches) {
         if (t.clientX > window.innerWidth * 0.3 && lookTouchId === null && !isOnButton(t.clientX, t.clientY)) {
             lookTouchId = t.identifier;
             lastX = t.clientX; lastY = t.clientY;
         }
     }
-}, { passive: true });
+}, { passive: false });
 
 window.addEventListener('touchmove', e => {
+    // Also block 2-finger scroll/zoom during touchmove
+    if (e.touches.length >= 2) { e.preventDefault(); return; }
     for (const t of e.changedTouches) {
         if (t.identifier === lookTouchId) {
             lookDeltaX += (t.clientX - lastX) * 0.006;
@@ -1826,7 +1830,13 @@ window.addEventListener('touchend', e => {
     for (const t of e.changedTouches) {
         if (t.identifier === lookTouchId) lookTouchId = null;
     }
-});
+}, { passive: true });
+
+window.addEventListener('touchcancel', e => {
+    for (const t of e.changedTouches) {
+        if (t.identifier === lookTouchId) lookTouchId = null;
+    }
+}, { passive: true });
 
 // Mouse support (desktop)
 let mouseLocked = false;
@@ -2009,37 +2019,33 @@ function doResize() {
     checkOrientation();
 }
 
-// Poll until dimensions stabilise after orientation flip
-function resizeAfterOrientationChange() {
-    let last = -1;
-    let tries = 0;
-    const poll = setInterval(() => {
-        const cur = window.innerWidth + window.innerHeight;
-        if (cur !== last) { last = cur; tries = 0; }
-        else if (++tries >= 3) { clearInterval(poll); doResize(); }
-        if (++tries > 30) clearInterval(poll); // safety bail after 1.5 s
-    }, 50);
+// ── FULLSCREEN ──
+function requestFS() {
+    const el = document.documentElement;
+    const fn = el.requestFullscreen || el.webkitRequestFullscreen || el.mozRequestFullScreen || el.msRequestFullscreen;
+    if (fn) fn.call(el).catch(() => {});
+}
+function exitFS() {
+    const fn = document.exitFullscreen || document.webkitExitFullscreen || document.mozCancelFullScreen || document.msExitFullscreen;
+    if (fn) fn.call(document).catch(() => {});
+}
+function isInFS() {
+    return !!(document.fullscreenElement || document.webkitFullscreenElement);
 }
 
-window.addEventListener('resize', doResize);
-window.addEventListener('orientationchange', resizeAfterOrientationChange);
-
-// ── FULLSCREEN ──
 window.toggleFullscreen = function() {
-    const el = document.documentElement;
-    if (!document.fullscreenElement) {
-        (el.requestFullscreen || el.webkitRequestFullscreen || el.mozRequestFullScreen || el.msRequestFullscreen).call(el);
-    } else {
-        (document.exitFullscreen || document.webkitExitFullscreen || document.mozCancelFullScreen || document.msExitFullscreen).call(document);
-    }
+    isInFS() ? exitFS() : requestFS();
 };
 
 document.addEventListener('fullscreenchange',       updateFsIcon);
 document.addEventListener('webkitfullscreenchange', updateFsIcon);
 function updateFsIcon() {
-    const inFS = !!(document.fullscreenElement || document.webkitFullscreenElement);
+    const inFS = isInFS();
     document.getElementById('fs-icon-enter').style.display = inFS ? 'none' : '';
     document.getElementById('fs-icon-exit').style.display  = inFS ? ''     : 'none';
+    // Re-check overlay whenever fullscreen state changes
+    checkOrientation();
+    doResize();
 }
 
 // ── ROTATE OVERLAY ──
@@ -2048,18 +2054,51 @@ function checkOrientation() {
     document.getElementById('rotate-overlay').classList.toggle('show', isPortrait);
 }
 
-// Auto-go fullscreen when user rotates to landscape
-window.addEventListener('orientationchange', () => {
-    setTimeout(() => {
-        if (window.innerWidth > window.innerHeight && !document.fullscreenElement) {
-            const el = document.documentElement;
-            const fn = el.requestFullscreen || el.webkitRequestFullscreen || el.mozRequestFullScreen;
-            fn && fn.call(el).catch(() => {});
+// Poll until dimensions stabilise after orientation flip, then resize + recheck
+function resizeAfterOrientationChange() {
+    let last = -1;
+    let stable = 0;
+    let attempts = 0;
+    const poll = setInterval(() => {
+        const cur = window.innerWidth + window.innerHeight;
+        if (cur !== last) { last = cur; stable = 0; }
+        else { stable++; }
+        attempts++;
+        if (stable >= 4 || attempts >= 40) {
+            clearInterval(poll);
+            doResize();
+            checkOrientation();
         }
-    }, 200);
+    }, 50);
+}
+
+// Auto-go fullscreen when user rotates to landscape — retry at 300 / 700 / 1400 ms
+function autoFullscreenOnLandscape() {
+    [300, 700, 1400].forEach(delay => {
+        setTimeout(() => {
+            if (window.innerWidth > window.innerHeight && !isInFS()) requestFS();
+        }, delay);
+    });
+}
+
+// Single resize handler — doResize already calls checkOrientation internally
+let lastAspect = window.innerWidth > window.innerHeight ? 'land' : 'port';
+window.addEventListener('resize', () => {
+    doResize(); // includes checkOrientation()
+    const asp = window.innerWidth > window.innerHeight ? 'land' : 'port';
+    if (asp !== lastAspect) {
+        lastAspect = asp;
+        if (asp === 'land') autoFullscreenOnLandscape();
+    }
+});
+
+window.addEventListener('orientationchange', () => {
+    resizeAfterOrientationChange();
+    autoFullscreenOnLandscape();
 });
 
 doResize();
+checkOrientation();
 </script>
 </body>
 </html>
