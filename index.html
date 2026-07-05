@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>3D Battle Strike</title>
+    <title>FIRE</title>
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -467,6 +467,74 @@
             z-index: 40;
             opacity: 0;
         }
+
+        /* ── ROTATE / FULLSCREEN OVERLAY ── */
+        #rotate-overlay {
+            position: fixed; inset: 0;
+            background: #000;
+            z-index: 999;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 24px;
+        }
+
+        #rotate-overlay.show { display: flex; }
+
+        .rotate-icon {
+            width: 80px; height: 80px;
+            position: relative;
+            animation: rotatePhone 2s ease-in-out infinite;
+        }
+
+        @keyframes rotatePhone {
+            0%   { transform: rotate(0deg); }
+            40%  { transform: rotate(0deg); }
+            60%  { transform: rotate(90deg); }
+            100% { transform: rotate(90deg); }
+        }
+
+        .rotate-icon svg { width: 100%; height: 100%; }
+
+        .rotate-text {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 14px;
+            letter-spacing: 4px;
+            color: rgba(0,255,150,0.8);
+            text-transform: uppercase;
+            text-align: center;
+        }
+
+        .rotate-sub {
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 13px;
+            letter-spacing: 2px;
+            color: rgba(255,255,255,0.35);
+            text-align: center;
+        }
+
+        /* Fullscreen button */
+        #fullscreen-btn {
+            position: fixed;
+            top: 14px; right: 14px;
+            width: 38px; height: 38px;
+            background: rgba(0,0,0,0.45);
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 4px;
+            display: flex; align-items: center; justify-content: center;
+            cursor: pointer;
+            z-index: 30;
+            touch-action: manipulation;
+            transition: background 0.2s, border-color 0.2s;
+        }
+
+        #fullscreen-btn:hover, #fullscreen-btn:active {
+            background: rgba(0,255,150,0.15);
+            border-color: rgba(0,255,150,0.5);
+        }
+
+        #fullscreen-btn svg { width: 18px; height: 18px; fill: rgba(255,255,255,0.7); }
     </style>
 </head>
 <body>
@@ -478,7 +546,7 @@
     <div class="corner-deco bl"></div>
     <div class="corner-deco br"></div>
 
-    <div class="start-logo">BATTLE STRIKE</div>
+    <div class="start-logo">FIRE</div>
     <div class="start-subtitle">Urban Warfare &#x2219; 3D</div>
 
     <div class="mission-brief">
@@ -537,6 +605,29 @@
         <div class="crosshair-line v b"></div>
         <div class="crosshair-dot"></div>
     </div>
+</div>
+
+<!-- Rotate to Landscape Overlay -->
+<div id="rotate-overlay">
+    <div class="rotate-icon">
+        <svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+            <rect x="18" y="8" width="28" height="48" rx="4" ry="4" fill="none" stroke="rgba(0,255,150,0.8)" stroke-width="3"/>
+            <circle cx="32" cy="51" r="2.5" fill="rgba(0,255,150,0.6)"/>
+            <rect x="24" y="12" width="16" height="2" rx="1" fill="rgba(0,255,150,0.4)"/>
+        </svg>
+    </div>
+    <div class="rotate-text">Rotate Device</div>
+    <div class="rotate-sub">For the best experience, play in landscape mode</div>
+</div>
+
+<!-- Fullscreen Button -->
+<div id="fullscreen-btn" onclick="toggleFullscreen()" title="Fullscreen">
+    <svg id="fs-icon-enter" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+        <path d="M3 3h6v2H5v4H3V3zm12 0h6v6h-2V5h-4V3zM3 15h2v4h4v2H3v-6zm16 4h-4v2h6v-6h-2v4z"/>
+    </svg>
+    <svg id="fs-icon-exit" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" style="display:none">
+        <path d="M5 16h3v3h2v-5H5v2zm3-8H5v2h5V5H8v3zm6 11h2v-3h3v-2h-5v5zm2-11V5h-2v5h5V8h-3z"/>
+    </svg>
 </div>
 
 <!-- Effects -->
@@ -1303,7 +1394,33 @@ window.addEventListener('resize', () => {
     camera.aspect = window.innerWidth / window.innerHeight;
     camera.updateProjectionMatrix();
     renderer.setSize(window.innerWidth, window.innerHeight);
+    checkOrientation();
 });
+
+// ── FULLSCREEN ──
+window.toggleFullscreen = function() {
+    if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen && document.documentElement.requestFullscreen();
+    } else {
+        document.exitFullscreen && document.exitFullscreen();
+    }
+};
+
+document.addEventListener('fullscreenchange', () => {
+    const inFS = !!document.fullscreenElement;
+    document.getElementById('fs-icon-enter').style.display = inFS ? 'none' : '';
+    document.getElementById('fs-icon-exit').style.display  = inFS ? '' : 'none';
+});
+
+// ── ROTATE OVERLAY ──
+function checkOrientation() {
+    const isPortrait = window.innerHeight > window.innerWidth;
+    const overlay = document.getElementById('rotate-overlay');
+    overlay.classList.toggle('show', isPortrait);
+}
+
+checkOrientation();
+window.addEventListener('orientationchange', () => setTimeout(checkOrientation, 100));
 </script>
 </body>
 </html>
