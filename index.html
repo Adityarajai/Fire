@@ -1634,6 +1634,12 @@ function showKillNotify() {
 
 // ── GAME LOGIC ──
 window.startGame = function() {
+    // Request fullscreen NOW — this is called directly from a user tap, so browsers allow it
+    requestFS();
+    // Lock orientation to landscape if the API is available (Android Chrome supports this)
+    if (screen.orientation && screen.orientation.lock) {
+        screen.orientation.lock('landscape-primary').catch(() => {});
+    }
     document.getElementById('start-screen').style.display = 'none';
     resetGame();
     gameActive = true;
@@ -1767,14 +1773,24 @@ function toggleCrouch() {
 // ── CONTROLS ──
 const knob = document.getElementById('joystick-knob');
 let joystickActive = false;
+let joystickTouchId = null; // track WHICH finger owns the joystick
 
 document.getElementById('joystick-area').addEventListener('touchstart', e => {
-    joystickActive = true; e.preventDefault();
+    e.preventDefault();
+    if (joystickTouchId !== null) return; // already have a joystick finger
+    const t = e.changedTouches[0];
+    joystickTouchId = t.identifier;
+    joystickActive = true;
 }, { passive: false });
 
 document.getElementById('joystick-area').addEventListener('touchmove', e => {
     e.preventDefault();
-    const touch = e.touches[0];
+    // Only move joystick for THE finger that started on it — ignore all others
+    let touch = null;
+    for (const t of e.changedTouches) {
+        if (t.identifier === joystickTouchId) { touch = t; break; }
+    }
+    if (!touch) return;
     const rect = e.currentTarget.getBoundingClientRect();
     const cx = rect.left + rect.width / 2;
     const cy = rect.top + rect.height / 2;
@@ -1788,9 +1804,25 @@ document.getElementById('joystick-area').addEventListener('touchmove', e => {
     knob.style.transform = `translate(${moveX * maxR}px, ${moveZ * maxR}px)`;
 }, { passive: false });
 
-document.getElementById('joystick-area').addEventListener('touchend', () => {
-    moveX = 0; moveZ = 0; joystickActive = false;
-    knob.style.transform = 'translate(0,0)';
+document.getElementById('joystick-area').addEventListener('touchend', e => {
+    for (const t of e.changedTouches) {
+        if (t.identifier === joystickTouchId) {
+            moveX = 0; moveZ = 0;
+            joystickActive = false;
+            joystickTouchId = null;
+            knob.style.transform = 'translate(0,0)';
+        }
+    }
+});
+document.getElementById('joystick-area').addEventListener('touchcancel', e => {
+    for (const t of e.changedTouches) {
+        if (t.identifier === joystickTouchId) {
+            moveX = 0; moveZ = 0;
+            joystickActive = false;
+            joystickTouchId = null;
+            knob.style.transform = 'translate(0,0)';
+        }
+    }
 });
 
 // Button touch handlers
@@ -1799,8 +1831,9 @@ document.getElementById('reload-btn').addEventListener('touchstart',  e => { e.p
 document.getElementById('crouch-btn').addEventListener('touchstart',  e => { e.preventDefault(); toggleCrouch();}, { passive: false });
 document.getElementById('heal-btn').addEventListener('touchstart',    e => { e.preventDefault(); startHeal();   }, { passive: false });
 
-// Look controls — any touch in the middle area (not on buttons)
-const controlIds = new Set();
+// ── LOOK CONTROLS (right half, not on any button) ──
+// Each finger gets its own slot tracked by identifier.
+// Multiple fingers can be on screen at once (joystick + look + fire) — they don't interfere.
 let lookTouchId = null, lastX = 0, lastY = 0;
 
 function isOnButton(x, y) {
@@ -1811,25 +1844,30 @@ function isOnButton(x, y) {
     return false;
 }
 
+// Global touch handler — preventDefault always blocks browser pinch/scroll,
+// but we still process every individual finger by its own identifier.
 window.addEventListener('touchstart', e => {
-    // Block browser pinch-zoom / scroll during gameplay so multi-finger works
-    if (e.touches.length >= 2) { e.preventDefault(); return; }
+    e.preventDefault(); // always block browser gestures (pinch-zoom, scroll, tap-highlight)
     for (const t of e.changedTouches) {
-        if (t.clientX > window.innerWidth * 0.3 && lookTouchId === null && !isOnButton(t.clientX, t.clientY)) {
+        // Only claim a look finger if: right half of screen, not on a button, no look finger yet
+        if (lookTouchId === null
+            && t.clientX > window.innerWidth * 0.3
+            && !isOnButton(t.clientX, t.clientY)) {
             lookTouchId = t.identifier;
-            lastX = t.clientX; lastY = t.clientY;
+            lastX = t.clientX;
+            lastY = t.clientY;
         }
     }
 }, { passive: false });
 
 window.addEventListener('touchmove', e => {
-    // Also block 2-finger scroll/zoom during touchmove
-    if (e.touches.length >= 2) { e.preventDefault(); return; }
+    e.preventDefault(); // block scroll/pinch-zoom
     for (const t of e.changedTouches) {
         if (t.identifier === lookTouchId) {
             lookDeltaX += (t.clientX - lastX) * 0.006;
             lookDeltaY += (t.clientY - lastY) * 0.005;
-            lastX = t.clientX; lastY = t.clientY;
+            lastX = t.clientX;
+            lastY = t.clientY;
         }
     }
 }, { passive: false });
@@ -1838,13 +1876,13 @@ window.addEventListener('touchend', e => {
     for (const t of e.changedTouches) {
         if (t.identifier === lookTouchId) lookTouchId = null;
     }
-}, { passive: true });
+}, { passive: false });
 
 window.addEventListener('touchcancel', e => {
     for (const t of e.changedTouches) {
         if (t.identifier === lookTouchId) lookTouchId = null;
     }
-}, { passive: true });
+}, { passive: false });
 
 // Mouse support (desktop)
 let mouseLocked = false;
@@ -2084,30 +2122,12 @@ function resizeAfterOrientationChange() {
     }, 50);
 }
 
-// Auto-go fullscreen when user rotates to landscape — retry at 300 / 700 / 1400 ms
-function autoFullscreenOnLandscape() {
-    [300, 700, 1400].forEach(delay => {
-        setTimeout(() => {
-            if (window.innerWidth > window.innerHeight && !isInFS()) requestFS();
-        }, delay);
-    });
-}
+// Resize: doResize already calls checkOrientation internally
+window.addEventListener('resize', () => { doResize(); });
 
-// Single resize handler — doResize already calls checkOrientation internally
-let lastAspect = window.innerWidth > window.innerHeight ? 'land' : 'port';
-window.addEventListener('resize', () => {
-    doResize(); // includes checkOrientation()
-    const asp = window.innerWidth > window.innerHeight ? 'land' : 'port';
-    if (asp !== lastAspect) {
-        lastAspect = asp;
-        if (asp === 'land') autoFullscreenOnLandscape();
-    }
-});
-
-window.addEventListener('orientationchange', () => {
-    resizeAfterOrientationChange();
-    autoFullscreenOnLandscape();
-});
+// orientationchange: just stabilise dimensions and update overlay — don't try requestFullscreen
+// (browsers block fullscreen from non-gesture events; fullscreen is triggered by startGame tap instead)
+window.addEventListener('orientationchange', () => { resizeAfterOrientationChange(); });
 
 doResize();
 checkOrientation();
