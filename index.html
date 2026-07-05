@@ -17,8 +17,16 @@
             -webkit-user-select: none;
         }
 
-        html, body { width: 100%; height: 100%; }
-        canvas { display: block; width: 100vw !important; height: 100vh !important; position: fixed; top: 0; left: 0; }
+        html, body {
+            width: 100%; height: 100%;
+            /* iOS Safari fill-available fallback so 100% doesn't include browser chrome */
+            height: -webkit-fill-available;
+        }
+        canvas {
+            display: block;
+            position: fixed; top: 0; left: 0;
+            /* Do NOT use 100vw/100vh — JS sets width/height directly after every resize */
+        }
 
         /* ── SCANLINE OVERLAY ── */
         body::after {
@@ -2012,8 +2020,12 @@ animate();
 function doResize() {
     const w = window.innerWidth;
     const h = window.innerHeight;
-    renderer.setSize(w, h, false);        // false = don't set canvas style (CSS handles it)
+    // Let Three.js set both the canvas pixel buffer AND its CSS style
+    renderer.setSize(w, h);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    // Also force inline style so no CSS value can override us after rotation
+    renderer.domElement.style.width  = w + 'px';
+    renderer.domElement.style.height = h + 'px';
     camera.aspect = w / h;
     camera.updateProjectionMatrix();
     checkOrientation();
