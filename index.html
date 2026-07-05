@@ -1634,12 +1634,13 @@ function showKillNotify() {
 
 // ── GAME LOGIC ──
 window.startGame = function() {
-    // Request fullscreen NOW — this is called directly from a user tap, so browsers allow it
+    // Attempt fullscreen — wrapped so any error can never block the game from starting
     requestFS();
-    // Lock orientation to landscape if the API is available (Android Chrome supports this)
-    if (screen.orientation && screen.orientation.lock) {
-        screen.orientation.lock('landscape-primary').catch(() => {});
-    }
+    try {
+        if (screen.orientation && screen.orientation.lock) {
+            screen.orientation.lock('landscape-primary').catch(() => {});
+        }
+    } catch (e) {}
     document.getElementById('start-screen').style.display = 'none';
     resetGame();
     gameActive = true;
@@ -2071,13 +2072,23 @@ function doResize() {
 
 // ── FULLSCREEN ──
 function requestFS() {
-    const el = document.documentElement;
-    const fn = el.requestFullscreen || el.webkitRequestFullscreen || el.mozRequestFullScreen || el.msRequestFullscreen;
-    if (fn) fn.call(el).catch(() => {});
+    try {
+        const el = document.documentElement;
+        const fn = el.requestFullscreen || el.webkitRequestFullscreen || el.mozRequestFullScreen || el.msRequestFullscreen;
+        if (fn) {
+            const p = fn.call(el);
+            if (p && p.catch) p.catch(() => {});
+        }
+    } catch (e) { /* fullscreen blocked (iframe / browser policy) — game still starts */ }
 }
 function exitFS() {
-    const fn = document.exitFullscreen || document.webkitExitFullscreen || document.mozCancelFullScreen || document.msExitFullscreen;
-    if (fn) fn.call(document).catch(() => {});
+    try {
+        const fn = document.exitFullscreen || document.webkitExitFullscreen || document.mozCancelFullScreen || document.msExitFullscreen;
+        if (fn) {
+            const p = fn.call(document);
+            if (p && p.catch) p.catch(() => {});
+        }
+    } catch (e) {}
 }
 function isInFS() {
     return !!(document.fullscreenElement || document.webkitFullscreenElement);
