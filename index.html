@@ -360,37 +360,156 @@
             box-shadow: 0 0 15px rgba(255,255,255,0.1);
         }
 
-        #fire-btn {
+        /* ── RIGHT CONTROL CLUSTER ── */
+        #right-controls {
             position: fixed;
-            bottom: 55px; right: 45px;
-            width: 90px; height: 90px;
-            background: radial-gradient(circle, rgba(255,50,50,0.6) 0%, rgba(180,20,20,0.7) 100%);
-            border: 2px solid rgba(255,100,100,0.6);
-            border-radius: 50%;
+            bottom: 30px; right: 20px;
+            width: 220px; height: 200px;
+            z-index: 20;
+            pointer-events: none;
+        }
+
+        .ctrl-btn {
+            position: absolute;
             display: flex; flex-direction: column;
             align-items: center; justify-content: center;
+            border-radius: 50%;
             color: white;
             font-family: 'Orbitron', sans-serif;
-            font-size: 13px;
             font-weight: 700;
             letter-spacing: 1px;
-            z-index: 20;
             touch-action: none;
-            box-shadow:
-                0 0 20px rgba(255,50,50,0.4),
-                inset 0 1px 0 rgba(255,255,255,0.2);
-            transition: all 0.1s ease;
+            pointer-events: all;
+            cursor: pointer;
+            -webkit-tap-highlight-color: transparent;
+            transition: transform 0.08s, box-shadow 0.08s;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        .ctrl-btn:active { transform: scale(0.90); }
+
+        /* FIRE — large, bottom-right */
+        #fire-btn {
+            width: 92px; height: 92px;
+            bottom: 0; right: 0;
+            background: radial-gradient(circle, rgba(255,60,60,0.75) 0%, rgba(160,10,10,0.85) 100%);
+            border: 2.5px solid rgba(255,110,110,0.7);
+            font-size: 13px;
+            box-shadow: 0 0 22px rgba(255,50,50,0.5), inset 0 1px 0 rgba(255,255,255,0.2);
         }
 
         #fire-btn:active {
-            transform: scale(0.93);
-            box-shadow: 0 0 35px rgba(255,50,50,0.7), inset 0 0 15px rgba(0,0,0,0.3);
+            box-shadow: 0 0 40px rgba(255,50,50,0.8), inset 0 0 18px rgba(0,0,0,0.4);
         }
 
-        .fire-icon {
-            font-size: 22px;
-            margin-bottom: 2px;
+        /* JUMP — top-right */
+        #jump-btn {
+            width: 68px; height: 68px;
+            top: 0; right: 10px;
+            background: radial-gradient(circle, rgba(80,160,255,0.6) 0%, rgba(20,80,180,0.75) 100%);
+            border: 2px solid rgba(100,180,255,0.6);
+            font-size: 11px;
+            box-shadow: 0 0 16px rgba(80,160,255,0.4);
         }
+
+        /* RELOAD — bottom-left of cluster */
+        #reload-btn {
+            width: 68px; height: 68px;
+            bottom: 10px; left: 0;
+            background: radial-gradient(circle, rgba(255,180,0,0.6) 0%, rgba(180,100,0,0.75) 100%);
+            border: 2px solid rgba(255,200,80,0.6);
+            font-size: 10px;
+            box-shadow: 0 0 16px rgba(255,180,0,0.35);
+        }
+
+        #reload-btn.reloading {
+            animation: reloadSpin 1.8s linear;
+            opacity: 0.6;
+        }
+
+        @keyframes reloadSpin {
+            from { filter: hue-rotate(0deg); }
+            to   { filter: hue-rotate(360deg); }
+        }
+
+        /* CROUCH — middle-left of cluster */
+        #crouch-btn {
+            width: 58px; height: 58px;
+            bottom: 72px; left: 14px;
+            background: radial-gradient(circle, rgba(140,255,140,0.45) 0%, rgba(20,120,20,0.65) 100%);
+            border: 2px solid rgba(140,255,140,0.5);
+            font-size: 9px;
+            box-shadow: 0 0 12px rgba(100,255,100,0.3);
+        }
+
+        #crouch-btn.active {
+            background: radial-gradient(circle, rgba(50,200,50,0.7) 0%, rgba(10,100,10,0.85) 100%);
+            box-shadow: 0 0 20px rgba(50,255,50,0.6);
+        }
+
+        .btn-icon { font-size: 20px; line-height: 1; margin-bottom: 2px; }
+        .btn-label { font-size: 9px; letter-spacing: 1.5px; opacity: 0.85; }
+
+        /* ── AMMO HUD ── */
+        .hud-ammo-count {
+            font-family: 'Orbitron', sans-serif;
+            text-align: right;
+            line-height: 1.1;
+        }
+        .hud-ammo-count .ammo-cur {
+            font-size: 28px; font-weight: 700; color: #fff;
+        }
+        .hud-ammo-count .ammo-cur.low { color: #ff4444; animation: ammoFlash 0.5s ease infinite alternate; }
+        @keyframes ammoFlash { from { opacity: 1; } to { opacity: 0.3; } }
+        .hud-ammo-count .ammo-sep { font-size: 18px; color: rgba(255,255,255,0.3); margin: 0 3px; }
+        .hud-ammo-count .ammo-max { font-size: 18px; color: rgba(255,255,255,0.4); }
+        .hud-ammo-count .ammo-label { font-size: 9px; color: rgba(255,255,255,0.4); letter-spacing: 3px; display: block; margin-bottom: 2px; }
+
+        /* Reload bar */
+        #reload-bar-wrap {
+            position: fixed;
+            bottom: 175px; left: 50%; transform: translateX(-50%);
+            width: 140px; height: 6px;
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 3px;
+            z-index: 25;
+            display: none;
+        }
+        #reload-bar-wrap.show { display: block; }
+        #reload-bar-fill {
+            height: 100%;
+            background: linear-gradient(to right, #ff9900, #ffcc00);
+            border-radius: 3px;
+            width: 0%;
+            transition: none;
+        }
+        #reload-label {
+            position: fixed;
+            bottom: 185px; left: 50%; transform: translateX(-50%);
+            font-family: 'Orbitron', sans-serif;
+            font-size: 11px; letter-spacing: 3px;
+            color: #ffcc00;
+            z-index: 25;
+            display: none;
+            white-space: nowrap;
+        }
+        #reload-label.show { display: block; }
+
+        /* Jump indicator */
+        #jump-indicator {
+            position: fixed;
+            bottom: 215px; right: 55px;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 10px; letter-spacing: 2px;
+            color: rgba(80,160,255,0.7);
+            z-index: 25;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+        #jump-indicator.show { opacity: 1; }
 
         /* ── GAME OVER / WIN OVERLAY ── */
         #end-screen {
@@ -578,9 +697,9 @@
             <span>KILLS &nbsp;<span class="kill-num" id="kill-count">0</span><span class="kill-total">/10</span></span>
         </div>
         <div class="kill-pips" id="kill-pips"></div>
-        <div class="hud-ammo">
+        <div class="hud-ammo-count">
             <span class="ammo-label">AMMO</span>
-            &#x221E;
+            <span class="ammo-cur" id="ammo-cur">30</span><span class="ammo-sep">/</span><span class="ammo-max" id="ammo-max">30</span>
         </div>
     </div>
 
@@ -639,10 +758,30 @@
 
 <!-- Mobile Controls -->
 <div id="joystick-area"><div id="joystick-knob"></div></div>
-<div id="fire-btn">
-    <div class="fire-icon">&#x1F4A5;</div>
-    FIRE
+
+<div id="right-controls">
+    <div class="ctrl-btn" id="jump-btn">
+        <div class="btn-icon">&#x2B06;</div>
+        <div class="btn-label">JUMP</div>
+    </div>
+    <div class="ctrl-btn" id="reload-btn">
+        <div class="btn-icon">&#x21BB;</div>
+        <div class="btn-label">RELOAD</div>
+    </div>
+    <div class="ctrl-btn" id="crouch-btn">
+        <div class="btn-icon">&#x1F9CE;</div>
+        <div class="btn-label">CROUCH</div>
+    </div>
+    <div class="ctrl-btn" id="fire-btn">
+        <div class="btn-icon">&#x1F4A5;</div>
+        <div class="btn-label">FIRE</div>
+    </div>
 </div>
+
+<!-- Reload UI -->
+<div id="reload-label">RELOADING...</div>
+<div id="reload-bar-wrap"><div id="reload-bar-fill"></div></div>
+<div id="jump-indicator">AIRBORNE</div>
 
 <script type="importmap">
     { "imports": { "three": "https://unpkg.com/three@0.160.0/build/three.module.js" } }
@@ -669,6 +808,26 @@ let lookDeltaX = 0, lookDeltaY = 0;
 let moveX = 0, moveZ = 0;
 let playerYaw = 0;
 let playerPitch = 0;
+
+// Jump
+const GRAVITY = -0.018;
+const JUMP_FORCE = 0.28;
+let velY = 0;
+let isGrounded = true;
+const PLAYER_BASE_Y = 1.72;
+
+// Crouch
+let isCrouching = false;
+const CROUCH_Y = 1.1;
+
+// Ammo / Reload
+const MAG_SIZE = 30;
+let ammo = MAG_SIZE;
+let isReloading = false;
+let reloadTimer = 0;
+const RELOAD_TIME = 2000; // ms
+let reloadStart = 0;
+let lastFootstep = 0;
 
 // ── RENDERER ──
 const renderer = new THREE.WebGLRenderer({ antialias: true });
@@ -1015,42 +1174,223 @@ function createHumanBody(skinColor, uniformColor, helmetColor, isEnemy = true) {
     return { group, leftThigh, leftShin, rightThigh, rightShin, leftUpperArm, rightUpperArm };
 }
 
-// ── AUDIO ──
+// ── AUDIO ENGINE ──
 const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-function playGunshot() {
-    if (audioCtx.state === 'suspended') audioCtx.resume();
-    const bufSize = audioCtx.sampleRate * 0.15;
-    const buf = audioCtx.createBuffer(1, bufSize, audioCtx.sampleRate);
-    const data = buf.getChannelData(0);
-    for (let i = 0; i < bufSize; i++) {
-        data[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / bufSize, 3);
-    }
-    const src = audioCtx.createBufferSource();
-    src.buffer = buf;
-    const gain = audioCtx.createGain();
-    gain.gain.setValueAtTime(1.2, audioCtx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.15);
-    const filter = audioCtx.createBiquadFilter();
-    filter.type = 'lowpass';
-    filter.frequency.value = 800;
-    src.connect(filter);
-    filter.connect(gain);
-    gain.connect(audioCtx.destination);
-    src.start();
+
+function resume() { if (audioCtx.state === 'suspended') audioCtx.resume(); }
+
+// Utility: white noise buffer
+function noiseBuffer(dur) {
+    const n = Math.ceil(audioCtx.sampleRate * dur);
+    const buf = audioCtx.createBuffer(1, n, audioCtx.sampleRate);
+    const d = buf.getChannelData(0);
+    for (let i = 0; i < n; i++) d[i] = Math.random() * 2 - 1;
+    return buf;
 }
 
-function playHitSound() {
-    if (audioCtx.state === 'suspended') audioCtx.resume();
+// Utility: connect chain a → b → c → ...
+function chain(...nodes) {
+    for (let i = 0; i < nodes.length - 1; i++) nodes[i].connect(nodes[i+1]);
+    nodes[nodes.length-1].connect(audioCtx.destination);
+    return nodes;
+}
+
+// ── GUNSHOT (multi-layer) ──
+function playGunshot() {
+    resume();
+    const t = audioCtx.currentTime;
+
+    // Layer 1: sharp noise crack (high-freq attack)
+    const crack = audioCtx.createBufferSource();
+    crack.buffer = noiseBuffer(0.08);
+    const crackFilt = audioCtx.createBiquadFilter();
+    crackFilt.type = 'highpass'; crackFilt.frequency.value = 1200;
+    const crackGain = audioCtx.createGain();
+    crackGain.gain.setValueAtTime(3.0, t);
+    crackGain.gain.exponentialRampToValueAtTime(0.01, t + 0.07);
+    chain(crack, crackFilt, crackGain);
+    crack.start(t);
+
+    // Layer 2: body thump (low-freq boom)
+    const boom = audioCtx.createOscillator();
+    boom.type = 'sine'; boom.frequency.setValueAtTime(100, t);
+    boom.frequency.exponentialRampToValueAtTime(40, t + 0.12);
+    const boomGain = audioCtx.createGain();
+    boomGain.gain.setValueAtTime(1.8, t);
+    boomGain.gain.exponentialRampToValueAtTime(0.01, t + 0.14);
+    chain(boom, boomGain);
+    boom.start(t); boom.stop(t + 0.15);
+
+    // Layer 3: mid distortion body (noise + lowpass)
+    const body = audioCtx.createBufferSource();
+    body.buffer = noiseBuffer(0.25);
+    const bodyFilt = audioCtx.createBiquadFilter();
+    bodyFilt.type = 'lowpass'; bodyFilt.frequency.value = 600;
+    const bodyGain = audioCtx.createGain();
+    bodyGain.gain.setValueAtTime(1.4, t);
+    bodyGain.gain.exponentialRampToValueAtTime(0.01, t + 0.22);
+    chain(body, bodyFilt, bodyGain);
+    body.start(t);
+
+    // Layer 4: short echo tail
+    const echo = audioCtx.createBufferSource();
+    echo.buffer = noiseBuffer(0.3);
+    const echoFilt = audioCtx.createBiquadFilter();
+    echoFilt.type = 'bandpass'; echoFilt.frequency.value = 350; echoFilt.Q.value = 0.8;
+    const echoGain = audioCtx.createGain();
+    echoGain.gain.setValueAtTime(0.0, t + 0.06);
+    echoGain.gain.linearRampToValueAtTime(0.35, t + 0.10);
+    echoGain.gain.exponentialRampToValueAtTime(0.01, t + 0.32);
+    chain(echo, echoFilt, echoGain);
+    echo.start(t + 0.06);
+}
+
+// ── EMPTY GUN click ──
+function playEmptyClick() {
+    resume();
+    const t = audioCtx.currentTime;
     const osc = audioCtx.createOscillator();
-    const gain = audioCtx.createGain();
-    osc.type = 'sawtooth';
-    osc.frequency.setValueAtTime(80, audioCtx.currentTime);
-    osc.frequency.exponentialRampToValueAtTime(40, audioCtx.currentTime + 0.1);
-    gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.12);
-    osc.connect(gain);
-    gain.connect(audioCtx.destination);
-    osc.start(); osc.stop(audioCtx.currentTime + 0.12);
+    osc.type = 'square'; osc.frequency.value = 2200;
+    const g = audioCtx.createGain();
+    g.gain.setValueAtTime(0.15, t);
+    g.gain.exponentialRampToValueAtTime(0.001, t + 0.04);
+    chain(osc, g); osc.start(t); osc.stop(t + 0.04);
+}
+
+// ── RELOAD sounds ──
+function playReloadSound() {
+    resume();
+    const t = audioCtx.currentTime;
+
+    // Mag eject click
+    function metalClick(when, freq, vol) {
+        const o = audioCtx.createOscillator();
+        o.type = 'square'; o.frequency.value = freq;
+        const g = audioCtx.createGain();
+        g.gain.setValueAtTime(vol, when);
+        g.gain.exponentialRampToValueAtTime(0.001, when + 0.06);
+        const f = audioCtx.createBiquadFilter();
+        f.type = 'highpass'; f.frequency.value = 800;
+        chain(o, f, g); o.start(when); o.stop(when + 0.07);
+
+        const n = audioCtx.createBufferSource();
+        n.buffer = noiseBuffer(0.06);
+        const nf = audioCtx.createBiquadFilter();
+        nf.type = 'highpass'; nf.frequency.value = 3000;
+        const ng = audioCtx.createGain();
+        ng.gain.setValueAtTime(vol * 0.6, when);
+        ng.gain.exponentialRampToValueAtTime(0.001, when + 0.05);
+        chain(n, nf, ng); n.start(when);
+    }
+
+    metalClick(t,        1800, 0.4);   // mag release
+    metalClick(t + 0.45, 1400, 0.5);   // new mag in
+    metalClick(t + 0.90, 2200, 0.35);  // charging handle pull
+    metalClick(t + 1.10, 1900, 0.45);  // charging handle release / chamber round
+
+    // Mechanical slide noise
+    const slide = audioCtx.createBufferSource();
+    slide.buffer = noiseBuffer(0.18);
+    const sf = audioCtx.createBiquadFilter();
+    sf.type = 'bandpass'; sf.frequency.value = 1200; sf.Q.value = 0.5;
+    const sg = audioCtx.createGain();
+    sg.gain.setValueAtTime(0.0, t + 0.85);
+    sg.gain.linearRampToValueAtTime(0.5, t + 0.92);
+    sg.gain.exponentialRampToValueAtTime(0.001, t + 1.05);
+    chain(slide, sf, sg); slide.start(t + 0.85);
+}
+
+// ── HIT RECEIVED ──
+function playHitSound() {
+    resume();
+    const t = audioCtx.currentTime;
+
+    // Flesh impact thud
+    const thud = audioCtx.createOscillator();
+    thud.type = 'sawtooth'; thud.frequency.setValueAtTime(120, t);
+    thud.frequency.exponentialRampToValueAtTime(35, t + 0.14);
+    const tg = audioCtx.createGain();
+    tg.gain.setValueAtTime(0.5, t);
+    tg.gain.exponentialRampToValueAtTime(0.001, t + 0.15);
+    chain(thud, tg); thud.start(t); thud.stop(t + 0.15);
+
+    // Noise burst
+    const n = audioCtx.createBufferSource();
+    n.buffer = noiseBuffer(0.08);
+    const nf = audioCtx.createBiquadFilter();
+    nf.type = 'lowpass'; nf.frequency.value = 400;
+    const ng = audioCtx.createGain();
+    ng.gain.setValueAtTime(0.8, t);
+    ng.gain.exponentialRampToValueAtTime(0.001, t + 0.08);
+    chain(n, nf, ng); n.start(t);
+}
+
+// ── JUMP whoosh ──
+function playJumpSound() {
+    resume();
+    const t = audioCtx.currentTime;
+    const n = audioCtx.createBufferSource();
+    n.buffer = noiseBuffer(0.12);
+    const f = audioCtx.createBiquadFilter();
+    f.type = 'bandpass'; f.frequency.setValueAtTime(600, t);
+    f.frequency.linearRampToValueAtTime(1800, t + 0.1);
+    f.Q.value = 1.5;
+    const g = audioCtx.createGain();
+    g.gain.setValueAtTime(0.0, t);
+    g.gain.linearRampToValueAtTime(0.35, t + 0.03);
+    g.gain.exponentialRampToValueAtTime(0.001, t + 0.12);
+    chain(n, f, g); n.start(t);
+}
+
+// ── LAND thud ──
+function playLandSound() {
+    resume();
+    const t = audioCtx.currentTime;
+    const o = audioCtx.createOscillator();
+    o.type = 'sine'; o.frequency.setValueAtTime(180, t);
+    o.frequency.exponentialRampToValueAtTime(40, t + 0.1);
+    const g = audioCtx.createGain();
+    g.gain.setValueAtTime(0.7, t);
+    g.gain.exponentialRampToValueAtTime(0.001, t + 0.12);
+    chain(o, g); o.start(t); o.stop(t + 0.12);
+
+    const n = audioCtx.createBufferSource();
+    n.buffer = noiseBuffer(0.08);
+    const nf = audioCtx.createBiquadFilter();
+    nf.type = 'lowpass'; nf.frequency.value = 300;
+    const ng = audioCtx.createGain();
+    ng.gain.setValueAtTime(0.5, t);
+    ng.gain.exponentialRampToValueAtTime(0.001, t + 0.08);
+    chain(n, nf, ng); n.start(t);
+}
+
+// ── FOOTSTEP ──
+function playFootstep() {
+    resume();
+    const t = audioCtx.currentTime;
+    const n = audioCtx.createBufferSource();
+    n.buffer = noiseBuffer(0.06);
+    const f = audioCtx.createBiquadFilter();
+    f.type = 'lowpass'; f.frequency.value = 250;
+    const g = audioCtx.createGain();
+    g.gain.setValueAtTime(0.18, t);
+    g.gain.exponentialRampToValueAtTime(0.001, t + 0.06);
+    chain(n, f, g); n.start(t);
+}
+
+// ── KILL CONFIRM ──
+function playKillConfirm() {
+    resume();
+    const t = audioCtx.currentTime;
+    [660, 880, 1100].forEach((freq, i) => {
+        const o = audioCtx.createOscillator();
+        o.type = 'triangle'; o.frequency.value = freq;
+        const g = audioCtx.createGain();
+        g.gain.setValueAtTime(0.0, t + i * 0.07);
+        g.gain.linearRampToValueAtTime(0.2, t + i * 0.07 + 0.02);
+        g.gain.exponentialRampToValueAtTime(0.001, t + i * 0.07 + 0.1);
+        chain(o, g); o.start(t + i * 0.07); o.stop(t + i * 0.07 + 0.12);
+    });
 }
 
 // ── PARTICLE SYSTEM ──
@@ -1183,11 +1523,21 @@ window.startGame = function() {
 function resetGame() {
     playerHp = 100;
     kills = 0;
-    playerPivot.position.set(0, 1.72, 0);
+    ammo = MAG_SIZE;
+    isReloading = false;
+    isGrounded = true;
+    isCrouching = false;
+    velY = 0;
+    playerPivot.position.set(0, PLAYER_BASE_Y, 0);
     playerYaw = 0; playerPitch = 0;
     enemies.forEach(e => scene.remove(e.mesh));
     enemies = [];
     for (let i = 0; i < 10; i++) enemies.push(new Enemy());
+    updateAmmoHUD();
+    document.getElementById('crouch-btn').classList.remove('active');
+    document.getElementById('reload-label').classList.remove('show');
+    document.getElementById('reload-bar-wrap').classList.remove('show');
+    document.getElementById('jump-indicator').classList.remove('show');
     updateUI();
 }
 
@@ -1222,6 +1572,52 @@ function updateUI() {
     }
 }
 
+// ── RELOAD LOGIC ──
+function updateAmmoHUD() {
+    const cur = document.getElementById('ammo-cur');
+    const max = document.getElementById('ammo-max');
+    if (!cur) return;
+    cur.textContent = ammo;
+    max.textContent = MAG_SIZE;
+    cur.classList.toggle('low', ammo <= 7);
+}
+
+function startReload() {
+    if (isReloading || ammo === MAG_SIZE) return;
+    isReloading = true;
+    reloadStart = Date.now();
+    playReloadSound();
+    document.getElementById('reload-btn').classList.add('reloading');
+    document.getElementById('reload-label').classList.add('show');
+    document.getElementById('reload-bar-wrap').classList.add('show');
+    document.getElementById('reload-bar-fill').style.width = '0%';
+}
+
+function finishReload() {
+    isReloading = false;
+    ammo = MAG_SIZE;
+    updateAmmoHUD();
+    document.getElementById('reload-btn').classList.remove('reloading');
+    document.getElementById('reload-label').classList.remove('show');
+    document.getElementById('reload-bar-wrap').classList.remove('show');
+}
+
+// ── JUMP LOGIC ──
+function doJump() {
+    if (!isGrounded || !gameActive) return;
+    velY = JUMP_FORCE;
+    isGrounded = false;
+    playJumpSound();
+    document.getElementById('jump-indicator').classList.add('show');
+}
+
+// ── CROUCH LOGIC ──
+function toggleCrouch() {
+    if (!gameActive) return;
+    isCrouching = !isCrouching;
+    document.getElementById('crouch-btn').classList.toggle('active', isCrouching);
+}
+
 // ── CONTROLS ──
 const knob = document.getElementById('joystick-knob');
 let joystickActive = false;
@@ -1246,27 +1642,36 @@ document.getElementById('joystick-area').addEventListener('touchmove', e => {
     knob.style.transform = `translate(${moveX * maxR}px, ${moveZ * maxR}px)`;
 }, { passive: false });
 
-document.getElementById('joystick-area').addEventListener('touchend', e => {
+document.getElementById('joystick-area').addEventListener('touchend', () => {
     moveX = 0; moveZ = 0; joystickActive = false;
     knob.style.transform = 'translate(0,0)';
 });
 
-// Look controls (right side of screen)
+// Button touch handlers
+document.getElementById('jump-btn').addEventListener('touchstart',   e => { e.preventDefault(); doJump();      }, { passive: false });
+document.getElementById('reload-btn').addEventListener('touchstart',  e => { e.preventDefault(); startReload(); }, { passive: false });
+document.getElementById('crouch-btn').addEventListener('touchstart',  e => { e.preventDefault(); toggleCrouch();}, { passive: false });
+
+// Look controls — any touch in the middle area (not on buttons)
+const controlIds = new Set();
 let lookTouchId = null, lastX = 0, lastY = 0;
+
+function isOnButton(x, y) {
+    for (const id of ['fire-btn','jump-btn','reload-btn','crouch-btn','joystick-area']) {
+        const r = document.getElementById(id).getBoundingClientRect();
+        if (x >= r.left && x <= r.right && y >= r.top && y <= r.bottom) return true;
+    }
+    return false;
+}
+
 window.addEventListener('touchstart', e => {
     for (const t of e.changedTouches) {
-        if (t.clientX > window.innerWidth * 0.35 && lookTouchId === null) {
-            // Not on joystick or fire
-            const fireRect = document.getElementById('fire-btn').getBoundingClientRect();
-            const inFire = t.clientX >= fireRect.left && t.clientX <= fireRect.right &&
-                           t.clientY >= fireRect.top && t.clientY <= fireRect.bottom;
-            if (!inFire) {
-                lookTouchId = t.identifier;
-                lastX = t.clientX; lastY = t.clientY;
-            }
+        if (t.clientX > window.innerWidth * 0.3 && lookTouchId === null && !isOnButton(t.clientX, t.clientY)) {
+            lookTouchId = t.identifier;
+            lastX = t.clientX; lastY = t.clientY;
         }
     }
-});
+}, { passive: true });
 
 window.addEventListener('touchmove', e => {
     for (const t of e.changedTouches) {
@@ -1286,33 +1691,41 @@ window.addEventListener('touchend', e => {
 
 // Mouse support (desktop)
 let mouseLocked = false;
-renderer.domElement.addEventListener('click', () => {
-    renderer.domElement.requestPointerLock && renderer.domElement.requestPointerLock();
-});
-document.addEventListener('pointerlockchange', () => {
-    mouseLocked = !!document.pointerLockElement;
-});
+renderer.domElement.addEventListener('click', () => renderer.domElement.requestPointerLock?.());
+document.addEventListener('pointerlockchange', () => { mouseLocked = !!document.pointerLockElement; });
 document.addEventListener('mousemove', e => {
     if (!mouseLocked || !gameActive) return;
     lookDeltaX += e.movementX * 0.003;
     lookDeltaY += e.movementY * 0.002;
 });
 
-// Keyboard support
+// Keyboard
 const keys = {};
-document.addEventListener('keydown', e => { keys[e.code] = true; });
+document.addEventListener('keydown', e => {
+    keys[e.code] = true;
+    if (e.code === 'Space')                    doJump();
+    if (e.code === 'KeyR')                     startReload();
+    if (e.code === 'KeyC')                     toggleCrouch();
+    if (e.code === 'KeyF' || e.code === 'KeyE') shoot();
+});
 document.addEventListener('keyup', e => { keys[e.code] = false; });
 
-// ── FIRE BUTTON ──
+// ── SHOOT ──
 const raycaster = new THREE.Raycaster();
 function shoot() {
     if (!gameActive) return;
+    if (isReloading) return;
+    if (ammo <= 0) { playEmptyClick(); startReload(); return; }
+
+    ammo--;
+    updateAmmoHUD();
+    if (ammo === 0) startReload();
+
     playGunshot();
-    flashEffect('muzzle-flash', 80);
+    flashEffect('muzzle-flash', 70);
 
     raycaster.setFromCamera(new THREE.Vector2(0, 0), camera);
-    const meshList = enemies.map(e => e.mesh);
-    const hits = raycaster.intersectObjects(meshList, true);
+    const hits = raycaster.intersectObjects(enemies.map(e => e.mesh), true);
 
     if (hits.length > 0) {
         let obj = hits[0].object;
@@ -1324,6 +1737,7 @@ function shoot() {
                 scene.remove(enemies[idx].mesh);
                 enemies.splice(idx, 1);
                 kills++;
+                playKillConfirm();
                 flashEffect('kill-flash', 200);
                 showKillNotify();
                 updateUI();
@@ -1332,54 +1746,75 @@ function shoot() {
     }
 }
 
-document.getElementById('fire-btn').addEventListener('touchstart', e => {
-    e.preventDefault(); shoot();
-}, { passive: false });
-
-document.addEventListener('keydown', e => {
-    if (e.code === 'Space' || e.code === 'KeyF') shoot();
-    if (e.code === 'KeyR') resetGame();
-});
+document.getElementById('fire-btn').addEventListener('touchstart', e => { e.preventDefault(); shoot(); }, { passive: false });
 
 // ── ANIMATION LOOP ──
 const clock = new THREE.Clock();
-const tempVec = new THREE.Vector3();
 const moveDir = new THREE.Vector3();
 
 function animate() {
     requestAnimationFrame(animate);
     const dt = clock.getDelta();
 
-    if (!gameActive) {
-        renderer.render(scene, camera); return;
+    if (!gameActive) { renderer.render(scene, camera); return; }
+
+    // Reload progress bar
+    if (isReloading) {
+        const elapsed = Date.now() - reloadStart;
+        const pct = Math.min(elapsed / RELOAD_TIME, 1);
+        document.getElementById('reload-bar-fill').style.width = (pct * 100) + '%';
+        if (pct >= 1) finishReload();
     }
 
     // Camera rotation
     playerYaw   -= lookDeltaX;
     playerPitch -= lookDeltaY;
-    playerPitch = Math.max(-1.1, Math.min(1.1, playerPitch));
-    lookDeltaX *= 0.7; lookDeltaY *= 0.7;
-
+    playerPitch  = Math.max(-1.1, Math.min(1.1, playerPitch));
+    lookDeltaX  *= 0.7; lookDeltaY *= 0.7;
     playerPivot.rotation.y = playerYaw;
     camera.rotation.x = playerPitch;
 
     // Keyboard movement
-    if (keys['KeyW'] || keys['ArrowUp'])    moveZ = -1;
+    if (keys['KeyW'] || keys['ArrowUp'])         moveZ = -1;
     else if (keys['KeyS'] || keys['ArrowDown'])  moveZ =  1;
-    else if (!joystickActive) moveZ = 0;
-    if (keys['KeyA'] || keys['ArrowLeft'])  moveX = -1;
+    else if (!joystickActive)                    moveZ =  0;
+    if (keys['KeyA'] || keys['ArrowLeft'])        moveX = -1;
     else if (keys['KeyD'] || keys['ArrowRight']) moveX =  1;
-    else if (!joystickActive) moveX = 0;
+    else if (!joystickActive)                    moveX =  0;
 
-    // Move
-    const spd = 0.08;
+    // Move (slower when crouching)
+    const spd = isCrouching ? 0.04 : 0.09;
     moveDir.set(moveX, 0, moveZ).normalize();
     playerPivot.translateX(moveDir.x * spd);
     playerPivot.translateZ(moveDir.z * spd);
-
-    // Clamp player to map
     playerPivot.position.x = Math.max(-120, Math.min(120, playerPivot.position.x));
     playerPivot.position.z = Math.max(-120, Math.min(120, playerPivot.position.z));
+
+    // Footstep audio
+    const moving = Math.abs(moveX) + Math.abs(moveZ) > 0.1;
+    if (moving && isGrounded) {
+        const now = Date.now();
+        const interval = isCrouching ? 600 : 350;
+        if (now - lastFootstep > interval) { playFootstep(); lastFootstep = now; }
+    }
+
+    // Jump physics
+    if (!isGrounded) {
+        velY += GRAVITY;
+        playerPivot.position.y += velY;
+        const targetY = isCrouching ? CROUCH_Y : PLAYER_BASE_Y;
+        if (playerPivot.position.y <= targetY) {
+            playerPivot.position.y = targetY;
+            if (velY < -0.08) playLandSound();
+            velY = 0;
+            isGrounded = true;
+            document.getElementById('jump-indicator').classList.remove('show');
+        }
+    } else {
+        // Smooth crouch height
+        const targetY = isCrouching ? CROUCH_Y : PLAYER_BASE_Y;
+        playerPivot.position.y += (targetY - playerPivot.position.y) * 0.2;
+    }
 
     // Enemies
     enemies.forEach(e => e.update(dt));
