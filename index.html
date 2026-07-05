@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>FIRE</title>
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
@@ -17,7 +17,8 @@
             -webkit-user-select: none;
         }
 
-        canvas { display: block; }
+        html, body { width: 100%; height: 100%; }
+        canvas { display: block; width: 100vw !important; height: 100vh !important; position: fixed; top: 0; left: 0; }
 
         /* ── SCANLINE OVERLAY ── */
         body::after {
@@ -1390,37 +1391,68 @@ function animate() {
 }
 animate();
 
-window.addEventListener('resize', () => {
-    camera.aspect = window.innerWidth / window.innerHeight;
+// ── RESIZE (robust) ──
+function doResize() {
+    const w = window.innerWidth;
+    const h = window.innerHeight;
+    renderer.setSize(w, h, false);        // false = don't set canvas style (CSS handles it)
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    camera.aspect = w / h;
     camera.updateProjectionMatrix();
-    renderer.setSize(window.innerWidth, window.innerHeight);
     checkOrientation();
-});
+}
+
+// Poll until dimensions stabilise after orientation flip
+function resizeAfterOrientationChange() {
+    let last = -1;
+    let tries = 0;
+    const poll = setInterval(() => {
+        const cur = window.innerWidth + window.innerHeight;
+        if (cur !== last) { last = cur; tries = 0; }
+        else if (++tries >= 3) { clearInterval(poll); doResize(); }
+        if (++tries > 30) clearInterval(poll); // safety bail after 1.5 s
+    }, 50);
+}
+
+window.addEventListener('resize', doResize);
+window.addEventListener('orientationchange', resizeAfterOrientationChange);
 
 // ── FULLSCREEN ──
 window.toggleFullscreen = function() {
+    const el = document.documentElement;
     if (!document.fullscreenElement) {
-        document.documentElement.requestFullscreen && document.documentElement.requestFullscreen();
+        (el.requestFullscreen || el.webkitRequestFullscreen || el.mozRequestFullScreen || el.msRequestFullscreen).call(el);
     } else {
-        document.exitFullscreen && document.exitFullscreen();
+        (document.exitFullscreen || document.webkitExitFullscreen || document.mozCancelFullScreen || document.msExitFullscreen).call(document);
     }
 };
 
-document.addEventListener('fullscreenchange', () => {
-    const inFS = !!document.fullscreenElement;
+document.addEventListener('fullscreenchange',       updateFsIcon);
+document.addEventListener('webkitfullscreenchange', updateFsIcon);
+function updateFsIcon() {
+    const inFS = !!(document.fullscreenElement || document.webkitFullscreenElement);
     document.getElementById('fs-icon-enter').style.display = inFS ? 'none' : '';
-    document.getElementById('fs-icon-exit').style.display  = inFS ? '' : 'none';
-});
+    document.getElementById('fs-icon-exit').style.display  = inFS ? ''     : 'none';
+}
 
 // ── ROTATE OVERLAY ──
 function checkOrientation() {
     const isPortrait = window.innerHeight > window.innerWidth;
-    const overlay = document.getElementById('rotate-overlay');
-    overlay.classList.toggle('show', isPortrait);
+    document.getElementById('rotate-overlay').classList.toggle('show', isPortrait);
 }
 
-checkOrientation();
-window.addEventListener('orientationchange', () => setTimeout(checkOrientation, 100));
+// Auto-go fullscreen when user rotates to landscape
+window.addEventListener('orientationchange', () => {
+    setTimeout(() => {
+        if (window.innerWidth > window.innerHeight && !document.fullscreenElement) {
+            const el = document.documentElement;
+            const fn = el.requestFullscreen || el.webkitRequestFullscreen || el.mozRequestFullScreen;
+            fn && fn.call(el).catch(() => {});
+        }
+    }, 200);
+});
+
+doResize();
 </script>
 </body>
 </html>
