@@ -1848,9 +1848,12 @@ function isOnButton(x, y) {
 // Global touch handler — preventDefault always blocks browser pinch/scroll,
 // but we still process every individual finger by its own identifier.
 window.addEventListener('touchstart', e => {
-    e.preventDefault(); // always block browser gestures (pinch-zoom, scroll, tap-highlight)
+    // Only intercept touches during active gameplay.
+    // When start/end screens are showing we must NOT call preventDefault —
+    // that would block the synthesised click event and break onclick buttons.
+    if (!gameActive) return;
+    e.preventDefault(); // block pinch-zoom / scroll during gameplay
     for (const t of e.changedTouches) {
-        // Only claim a look finger if: right half of screen, not on a button, no look finger yet
         if (lookTouchId === null
             && t.clientX > window.innerWidth * 0.3
             && !isOnButton(t.clientX, t.clientY)) {
@@ -1862,7 +1865,8 @@ window.addEventListener('touchstart', e => {
 }, { passive: false });
 
 window.addEventListener('touchmove', e => {
-    e.preventDefault(); // block scroll/pinch-zoom
+    if (!gameActive) return;
+    e.preventDefault(); // block scroll/pinch-zoom during gameplay
     for (const t of e.changedTouches) {
         if (t.identifier === lookTouchId) {
             lookDeltaX += (t.clientX - lastX) * 0.006;
@@ -1877,13 +1881,13 @@ window.addEventListener('touchend', e => {
     for (const t of e.changedTouches) {
         if (t.identifier === lookTouchId) lookTouchId = null;
     }
-}, { passive: false });
+}, { passive: true });
 
 window.addEventListener('touchcancel', e => {
     for (const t of e.changedTouches) {
         if (t.identifier === lookTouchId) lookTouchId = null;
     }
-}, { passive: false });
+}, { passive: true });
 
 // Mouse support (desktop)
 let mouseLocked = false;
