@@ -538,6 +538,42 @@
         .hud-ammo-count .ammo-sep { font-size: 18px; color: rgba(255,255,255,0.3); margin: 0 3px; }
         .hud-ammo-count .ammo-max { font-size: 18px; color: rgba(255,255,255,0.4); }
         .hud-ammo-count .ammo-label { font-size: 9px; color: rgba(255,255,255,0.4); letter-spacing: 3px; display: block; margin-bottom: 2px; }
+        #gun-name-display {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 9px; letter-spacing: 3px;
+            color: rgba(255,255,255,0.55);
+            margin-bottom: 3px;
+            display: block;
+            text-align: right;
+        }
+
+        /* Gun selector bar — bottom-centre above joystick */
+        #gun-selector {
+            position: fixed;
+            bottom: 248px; left: 50%; transform: translateX(-50%);
+            display: flex; gap: 6px;
+            z-index: 30;
+        }
+        .gun-slot {
+            width: 52px; height: 32px;
+            border-radius: 6px;
+            border: 1.5px solid rgba(255,255,255,0.2);
+            background: rgba(0,0,0,0.5);
+            display: flex; flex-direction: column;
+            align-items: center; justify-content: center;
+            cursor: pointer;
+            font-family: 'Orbitron', sans-serif;
+            transition: border-color 0.15s, background 0.15s;
+        }
+        .gun-slot .gs-key  { font-size: 8px; letter-spacing: 1px; color: rgba(255,255,255,0.5); }
+        .gun-slot .gs-ammo { font-size: 9px; font-weight: 700; color: rgba(255,255,255,0.7); }
+        .gun-slot.active {
+            border-color: #00ffcc;
+            background: rgba(0,255,200,0.15);
+        }
+        .gun-slot.active .gs-key  { color: #00ffcc; }
+        .gun-slot.active .gs-ammo { color: #fff; }
+        .gun-slot.empty .gs-ammo  { color: #ff4444; }
 
         /* Reload bar */
         #reload-bar-wrap {
@@ -771,6 +807,7 @@
         </div>
         <div class="kill-pips" id="kill-pips"></div>
         <div class="hud-ammo-count">
+            <span id="gun-name-display">ASSAULT RIFLE</span>
             <span class="ammo-label">AMMO</span>
             <span class="ammo-cur" id="ammo-cur">30</span><span class="ammo-sep">/</span><span class="ammo-max" id="ammo-max">30</span>
         </div>
@@ -856,6 +893,14 @@
     </div>
 </div>
 
+<!-- Gun Selector Bar -->
+<div id="gun-selector">
+    <div class="gun-slot active" id="gs-0" onclick="switchGun(0)"><span class="gs-key">AR</span><span class="gs-ammo" id="ga-0">30</span></div>
+    <div class="gun-slot"        id="gs-1" onclick="switchGun(1)"><span class="gs-key">SG</span><span class="gs-ammo" id="ga-1">8</span></div>
+    <div class="gun-slot"        id="gs-2" onclick="switchGun(2)"><span class="gs-key">SNP</span><span class="gs-ammo" id="ga-2">5</span></div>
+    <div class="gun-slot"        id="gs-3" onclick="switchGun(3)"><span class="gs-key">SMG</span><span class="gs-ammo" id="ga-3">45</span></div>
+</div>
+
 <!-- Reload UI -->
 <div id="reload-label">RELOADING...</div>
 <div id="reload-bar-wrap"><div id="reload-bar-fill"></div></div>
@@ -902,12 +947,25 @@ const PLAYER_BASE_Y = 1.72;
 let isCrouching = false;
 const CROUCH_Y = 1.1;
 
-// Ammo / Reload
-const MAG_SIZE = 30;
-let ammo = MAG_SIZE;
+// ── GUN DEFINITIONS ──
+const GUNS = [
+    { key:'AR',  name:'ASSAULT RIFLE', mag:30, damage:1, cooldown:350,  reloadTime:2000, spread:0,    pellets:1 },
+    { key:'SG',  name:'SHOTGUN',       mag:8,  damage:2, cooldown:900,  reloadTime:2500, spread:0.09, pellets:6 },
+    { key:'SR',  name:'SNIPER RIFLE',  mag:5,  damage:3, cooldown:1500, reloadTime:3000, spread:0,    pellets:1 },
+    { key:'SMG', name:'SMG',           mag:45, damage:1, cooldown:100,  reloadTime:1800, spread:0.025,pellets:1 },
+];
+let currentGunIdx = 0;
+let gunAmmo = [30, 8, 5, 45]; // current ammo per gun slot
+let lastShotTime = 0;
+let smgHeld = false; // for SMG auto-fire
+
+// helpers so rest of code can use these names unchanged
+function curGun()    { return GUNS[currentGunIdx]; }
+function getAmmo()   { return gunAmmo[currentGunIdx]; }
+function setAmmo(v)  { gunAmmo[currentGunIdx] = v; }
+
+// Ammo / Reload (now dynamic — always use curGun())
 let isReloading = false;
-let reloadTimer = 0;
-const RELOAD_TIME = 2000; // ms
 let reloadStart = 0;
 let lastFootstep = 0;
 
@@ -1124,8 +1182,9 @@ function addRoadLine(x, z, w, l, rot) {
 for (let i = -60; i <= 60; i += 10) { addRoadLine(0, i, 0.3, 4, false); addRoadLine(i, 0, 0.3, 4, true); }
 
 // ── HUMAN BODY BUILDER ──
-function createHumanBody(skinColor, uniformColor, helmetColor, isEnemy = true) {
+function createHumanBody(skinColor, uniformColor, helmetColor, isEnemy = true, gunType = 'AR') {
     const group = new THREE.Group();
+    group.userData.gunType = gunType;
 
     const skinMat   = new THREE.MeshStandardMaterial({ color: skinColor, roughness: 0.8, metalness: 0.0 });
     const unifMat   = new THREE.MeshStandardMaterial({ color: uniformColor, roughness: 0.9, metalness: 0.0 });
@@ -1221,17 +1280,47 @@ function createHumanBody(skinColor, uniformColor, helmetColor, isEnemy = true) {
     rightHand.position.set(0.63, 0.72, 0.14);
     group.add(rightHand);
 
-    // ─ GUN (right hand) ─
-    const gunBody = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.1, 0.36), gunMat);
-    gunBody.position.set(0.65, 0.70, 0.26);
-    group.add(gunBody);
-    const gunBarrel = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.02, 0.28, 6), gunMat);
-    gunBarrel.rotation.x = Math.PI/2;
-    gunBarrel.position.set(0.65, 0.72, 0.44);
-    group.add(gunBarrel);
-    const gunStock = new THREE.Mesh(new THREE.BoxGeometry(0.05, 0.07, 0.18), gunMat);
-    gunStock.position.set(0.65, 0.67, 0.08);
-    group.add(gunStock);
+    // ─ GUN (right hand) — shape varies by gunType ─
+    const gt = gunType || 'AR';
+    if (gt === 'AR') {
+        // Assault Rifle — standard medium profile
+        const b = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.1, 0.36), gunMat);
+        b.position.set(0.65, 0.70, 0.26); group.add(b);
+        const bar = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.02, 0.28, 6), gunMat);
+        bar.rotation.x = Math.PI/2; bar.position.set(0.65, 0.72, 0.44); group.add(bar);
+        const st = new THREE.Mesh(new THREE.BoxGeometry(0.05, 0.07, 0.18), gunMat);
+        st.position.set(0.65, 0.67, 0.08); group.add(st);
+    } else if (gt === 'SG') {
+        // Shotgun — wide body, short thick barrel, pump handle
+        const b = new THREE.Mesh(new THREE.BoxGeometry(0.09, 0.13, 0.28), gunMat);
+        b.position.set(0.65, 0.70, 0.22); group.add(b);
+        const bar = new THREE.Mesh(new THREE.CylinderGeometry(0.035, 0.035, 0.18, 6), gunMat);
+        bar.rotation.x = Math.PI/2; bar.position.set(0.65, 0.72, 0.38); group.add(bar);
+        const pump = new THREE.Mesh(new THREE.BoxGeometry(0.07, 0.06, 0.1), new THREE.MeshStandardMaterial({color:0x5a3a1a,roughness:0.9}));
+        pump.position.set(0.65, 0.69, 0.33); group.add(pump);
+        const st = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.09, 0.14), gunMat);
+        st.position.set(0.65, 0.65, 0.06); group.add(st);
+    } else if (gt === 'SR') {
+        // Sniper Rifle — long slim body, very long barrel, scope on top
+        const b = new THREE.Mesh(new THREE.BoxGeometry(0.05, 0.09, 0.42), gunMat);
+        b.position.set(0.65, 0.70, 0.29); group.add(b);
+        const bar = new THREE.Mesh(new THREE.CylinderGeometry(0.015, 0.015, 0.52, 6), gunMat);
+        bar.rotation.x = Math.PI/2; bar.position.set(0.65, 0.72, 0.56); group.add(bar);
+        const scope = new THREE.Mesh(new THREE.BoxGeometry(0.04, 0.05, 0.14), new THREE.MeshStandardMaterial({color:0x222222,roughness:0.3,metalness:0.9}));
+        scope.position.set(0.65, 0.76, 0.28); group.add(scope);
+        const scopeLens = new THREE.Mesh(new THREE.CylinderGeometry(0.018, 0.018, 0.06, 8), gunMat);
+        scopeLens.rotation.x = Math.PI/2; scopeLens.position.set(0.65, 0.76, 0.36); group.add(scopeLens);
+        const st = new THREE.Mesh(new THREE.BoxGeometry(0.04, 0.08, 0.16), gunMat);
+        st.position.set(0.65, 0.66, 0.06); group.add(st);
+    } else {
+        // SMG — compact body, short barrel, drum magazine
+        const b = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.09, 0.22), gunMat);
+        b.position.set(0.65, 0.70, 0.18); group.add(b);
+        const bar = new THREE.Mesh(new THREE.CylinderGeometry(0.018, 0.018, 0.16, 6), gunMat);
+        bar.rotation.x = Math.PI/2; bar.position.set(0.65, 0.72, 0.33); group.add(bar);
+        const drum = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.05, 0.06, 10), gunMat);
+        drum.position.set(0.65, 0.62, 0.18); group.add(drum);
+    }
 
     // ─ LEFT LEG ─
     const leftThigh = new THREE.Mesh(new THREE.CylinderGeometry(0.115, 0.1, 0.38, 8), unifMat);
@@ -1539,6 +1628,18 @@ function updateParticles() {
 }
 
 // ── ENEMY CLASS ──
+// Enemy gun assignment tables
+const ENEMY_GUN_NORMAL = ['AR','AR','SMG','SMG','SG'];   // weighted pool
+const ENEMY_GUN_ELITE  = ['SR','SR','SG','AR','SMG'];     // weighted pool
+
+// Damage / fire-rate each enemy gun type deals to the player
+const ENEMY_GUN_STATS = {
+    AR:  { dmg: 10, interval: 1600 },
+    SMG: { dmg:  7, interval:  700 },
+    SG:  { dmg: 20, interval: 2000 },
+    SR:  { dmg: 25, interval: 3000 },
+};
+
 class Enemy {
     constructor() {
         const isElite = Math.random() > 0.6;
@@ -1546,7 +1647,11 @@ class Enemy {
         const helmetColor  = isElite ? 0x111111 : 0x2a2a1a;
         const skin = [0xf5c89a, 0xd4906a, 0xc07850][Math.floor(Math.random()*3)];
 
-        const { group, leftThigh, leftShin, rightThigh, rightShin, leftUpperArm, rightUpperArm } = createHumanBody(skin, uniformColor, helmetColor, true);
+        // Pick a gun type for this enemy
+        const pool = isElite ? ENEMY_GUN_ELITE : ENEMY_GUN_NORMAL;
+        this.gunType = pool[Math.floor(Math.random() * pool.length)];
+
+        const { group, leftThigh, leftShin, rightThigh, rightShin, leftUpperArm, rightUpperArm } = createHumanBody(skin, uniformColor, helmetColor, true, this.gunType);
         this.mesh = group;
         this.parts = { leftThigh, leftShin, rightThigh, rightShin, leftUpperArm, rightUpperArm };
         this.hp = isElite ? 3 : 2;
@@ -1590,9 +1695,10 @@ class Enemy {
             // Bobbing
             this.mesh.position.y = Math.abs(Math.sin(this.walkCycle)) * 0.06;
         } else {
-            // Combat
-            if (Date.now() - this.lastShotTime > 1600) {
-                playerHp -= this.isElite ? 15 : 10;
+            // Combat — damage and fire-rate depend on the enemy's gun type
+            const gs = ENEMY_GUN_STATS[this.gunType] || ENEMY_GUN_STATS.AR;
+            if (Date.now() - this.lastShotTime > gs.interval) {
+                playerHp -= gs.dmg;
                 playerHp = Math.max(0, playerHp);
                 playHitSound();
                 flashEffect('hit-flash');
@@ -1602,8 +1708,8 @@ class Enemy {
         }
     }
 
-    takeDamage() {
-        this.hp--;
+    takeDamage(damage = 1) {
+        this.hp -= damage;
         spawnBloodParticles(this.mesh.position.clone().setY(1));
         if (this.hp <= 0) return true;
         // Flash red
@@ -1649,7 +1755,8 @@ window.startGame = function() {
 function resetGame() {
     playerHp = 100;
     kills = 0;
-    ammo = MAG_SIZE;
+    currentGunIdx = 0;
+    gunAmmo = [30, 8, 5, 45]; // reset all gun ammo to full
     isReloading = false;
     isHealing = false;
     healCooldownStart = -Infinity;
@@ -1705,18 +1812,40 @@ function updateUI() {
     }
 }
 
-// ── RELOAD LOGIC ──
+// ── RELOAD / AMMO HUD ──
 function updateAmmoHUD() {
     const cur = document.getElementById('ammo-cur');
     const max = document.getElementById('ammo-max');
     if (!cur) return;
-    cur.textContent = ammo;
-    max.textContent = MAG_SIZE;
-    cur.classList.toggle('low', ammo <= 7);
+    const a = getAmmo();
+    const g = curGun();
+    cur.textContent = a;
+    max.textContent = g.mag;
+    cur.classList.toggle('low', a <= Math.ceil(g.mag * 0.25));
+    // Gun name
+    const nd = document.getElementById('gun-name-display');
+    if (nd) nd.textContent = g.name;
+    // Gun selector slots
+    GUNS.forEach((gun, i) => {
+        const slot = document.getElementById(`gs-${i}`);
+        const ammoEl = document.getElementById(`ga-${i}`);
+        if (!slot || !ammoEl) return;
+        slot.classList.toggle('active', i === currentGunIdx);
+        slot.classList.toggle('empty', gunAmmo[i] === 0);
+        ammoEl.textContent = gunAmmo[i];
+    });
 }
 
+// ── SWITCH GUN ──
+window.switchGun = function(idx) {
+    if (!gameActive) return;
+    if (isReloading) { isReloading = false; document.getElementById('reload-btn').classList.remove('reloading'); document.getElementById('reload-label').classList.remove('show'); document.getElementById('reload-bar-wrap').classList.remove('show'); }
+    currentGunIdx = idx;
+    updateAmmoHUD();
+};
+
 function startReload() {
-    if (isReloading || ammo === MAG_SIZE) return;
+    if (isReloading || getAmmo() === curGun().mag) return;
     isReloading = true;
     reloadStart = Date.now();
     playReloadSound();
@@ -1728,7 +1857,7 @@ function startReload() {
 
 function finishReload() {
     isReloading = false;
-    ammo = MAG_SIZE;
+    setAmmo(curGun().mag);
     updateAmmoHUD();
     document.getElementById('reload-btn').classList.remove('reloading');
     document.getElementById('reload-label').classList.remove('show');
@@ -1908,32 +2037,25 @@ document.addEventListener('keydown', e => {
     if (e.code === 'KeyC')                     toggleCrouch();
     if (e.code === 'KeyH')                     startHeal();
     if (e.code === 'KeyF' || e.code === 'KeyE') shoot();
+    if (e.code === 'Digit1') switchGun(0);
+    if (e.code === 'Digit2') switchGun(1);
+    if (e.code === 'Digit3') switchGun(2);
+    if (e.code === 'Digit4') switchGun(3);
 });
 document.addEventListener('keyup', e => { keys[e.code] = false; });
 
 // ── SHOOT ──
 const raycaster = new THREE.Raycaster();
-function shoot() {
-    if (!gameActive) return;
-    if (isReloading) return;
-    if (ammo <= 0) { playEmptyClick(); startReload(); return; }
 
-    ammo--;
-    updateAmmoHUD();
-    if (ammo === 0) startReload();
-
-    playGunshot();
-    flashEffect('muzzle-flash', 70);
-
-    raycaster.setFromCamera(new THREE.Vector2(0, 0), camera);
+function fireOneRay(spreadX, spreadY, damage) {
+    raycaster.setFromCamera(new THREE.Vector2(spreadX, spreadY), camera);
     const hits = raycaster.intersectObjects(enemies.map(e => e.mesh), true);
-
     if (hits.length > 0) {
         let obj = hits[0].object;
         while (obj.parent && !enemies.find(e => e.mesh === obj)) obj = obj.parent;
         const idx = enemies.findIndex(e => e.mesh === obj);
         if (idx > -1) {
-            const dead = enemies[idx].takeDamage();
+            const dead = enemies[idx].takeDamage(damage);
             if (dead) {
                 scene.remove(enemies[idx].mesh);
                 enemies.splice(idx, 1);
@@ -1947,7 +2069,53 @@ function shoot() {
     }
 }
 
-document.getElementById('fire-btn').addEventListener('touchstart', e => { e.preventDefault(); shoot(); }, { passive: false });
+function shoot() {
+    if (!gameActive || isReloading) return;
+    const g = curGun();
+    const now = Date.now();
+    if (now - lastShotTime < g.cooldown) return; // rate limit
+    lastShotTime = now;
+
+    const a = getAmmo();
+    if (a <= 0) { playEmptyClick(); startReload(); return; }
+
+    setAmmo(a - 1);
+    updateAmmoHUD();
+    if (getAmmo() === 0) startReload();
+
+    playGunshot();
+    flashEffect('muzzle-flash', g.key === 'SG' ? 110 : 70);
+
+    // Fire pellets (shotgun fires multiple; others fire one)
+    for (let p = 0; p < g.pellets; p++) {
+        const sx = (Math.random() - 0.5) * 2 * g.spread;
+        const sy = (Math.random() - 0.5) * 2 * g.spread;
+        fireOneRay(sx, sy, g.damage);
+    }
+
+    // Sniper scope flash
+    if (g.key === 'SR') {
+        camera.fov -= 8;
+        camera.updateProjectionMatrix();
+        setTimeout(() => { camera.fov += 8; camera.updateProjectionMatrix(); }, 180);
+    }
+}
+
+// SMG auto-fire: fires continuously while touch is held
+let smgInterval = null;
+document.getElementById('fire-btn').addEventListener('touchstart', e => {
+    e.preventDefault();
+    shoot();
+    if (curGun().key === 'SMG') {
+        smgInterval = setInterval(() => { if (gameActive) shoot(); }, curGun().cooldown + 10);
+    }
+}, { passive: false });
+document.getElementById('fire-btn').addEventListener('touchend', () => {
+    clearInterval(smgInterval); smgInterval = null;
+}, { passive: true });
+document.getElementById('fire-btn').addEventListener('touchcancel', () => {
+    clearInterval(smgInterval); smgInterval = null;
+}, { passive: true });
 
 // ── ANIMATION LOOP ──
 const clock = new THREE.Clock();
@@ -1962,7 +2130,7 @@ function animate() {
     // Reload progress bar
     if (isReloading) {
         const elapsed = Date.now() - reloadStart;
-        const pct = Math.min(elapsed / RELOAD_TIME, 1);
+        const pct = Math.min(elapsed / curGun().reloadTime, 1);
         document.getElementById('reload-bar-fill').style.width = (pct * 100) + '%';
         if (pct >= 1) finishReload();
     }
