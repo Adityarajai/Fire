@@ -3,750 +3,318 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>FIRE</title>
+    <title>FREE FIRE</title>
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-        body {
-            overflow: hidden;
-            font-family: 'Rajdhani', sans-serif;
-            touch-action: none;
-            background: #000;
-            user-select: none;
-            -webkit-user-select: none;
-        }
-
-        html, body {
-            width: 100%; height: 100%;
-            /* iOS Safari fill-available fallback so 100% doesn't include browser chrome */
-            height: -webkit-fill-available;
-        }
-        canvas {
-            display: block;
-            position: fixed; top: 0; left: 0;
-            /* Do NOT use 100vw/100vh — JS sets width/height directly after every resize */
-        }
-
-        /* ── SCANLINE OVERLAY ── */
-        body::after {
-            content: '';
-            position: fixed; inset: 0;
-            background: repeating-linear-gradient(
-                to bottom,
-                transparent 0px,
-                transparent 3px,
-                rgba(0,0,0,0.04) 3px,
-                rgba(0,0,0,0.04) 4px
-            );
-            pointer-events: none;
-            z-index: 200;
-        }
+        body { overflow: hidden; font-family: 'Rajdhani', sans-serif; touch-action: none; background: #000; user-select: none; -webkit-user-select: none; }
+        html, body { width: 100%; height: 100%; height: -webkit-fill-available; }
+        canvas { display: block; position: fixed; top: 0; left: 0; }
 
         /* ── START SCREEN ── */
         #start-screen {
             position: fixed; inset: 0;
-            background: radial-gradient(ellipse at center, #0a0f1e 0%, #000 70%);
+            background: linear-gradient(160deg, #0D0F15 0%, #1a0800 55%, #0D0F15 100%);
             display: flex; flex-direction: column;
             align-items: center; justify-content: center;
-            z-index: 150; text-align: center;
-            overflow: hidden;
+            z-index: 150; text-align: center; overflow: hidden;
         }
-
         #start-screen::before {
-            content: '';
-            position: absolute; inset: 0;
-            background:
-                linear-gradient(45deg, transparent 48%, rgba(0,255,150,0.03) 50%, transparent 52%),
-                linear-gradient(-45deg, transparent 48%, rgba(0,255,150,0.03) 50%, transparent 52%);
-            background-size: 60px 60px;
-            animation: gridMove 8s linear infinite;
+            content: ''; position: absolute; inset: 0;
+            background: radial-gradient(ellipse at 50% 90%, rgba(255,107,0,0.28) 0%, transparent 60%);
+            pointer-events: none;
         }
-
-        @keyframes gridMove {
-            from { background-position: 0 0; }
-            to { background-position: 60px 60px; }
+        #start-screen::after {
+            content: ''; position: absolute; inset: 0;
+            background: repeating-linear-gradient(to bottom, transparent 0px, transparent 3px, rgba(0,0,0,0.06) 3px, rgba(0,0,0,0.06) 4px);
+            pointer-events: none; z-index: 200;
         }
-
         .start-logo {
             font-family: 'Orbitron', sans-serif;
-            font-size: clamp(32px, 8vw, 72px);
-            font-weight: 900;
-            letter-spacing: 6px;
-            color: #fff;
-            text-shadow:
-                0 0 20px rgba(0,255,150,0.8),
-                0 0 60px rgba(0,255,150,0.4),
-                0 0 100px rgba(0,255,150,0.2);
-            animation: logoFlicker 3s ease-in-out infinite;
+            font-size: clamp(40px, 10vw, 90px); font-weight: 900; letter-spacing: 4px;
+            color: #FF6B00;
+            text-shadow: 0 0 30px rgba(255,107,0,0.9), 0 0 80px rgba(255,107,0,0.4), 0 5px 0 #7a2d00;
+            animation: logoFlicker 4s ease-in-out infinite;
             position: relative; z-index: 1;
         }
-
-        @keyframes logoFlicker {
-            0%,100% { opacity: 1; }
-            92% { opacity: 1; }
-            93% { opacity: 0.8; }
-            94% { opacity: 1; }
-            96% { opacity: 0.9; }
-            97% { opacity: 1; }
-        }
-
+        @keyframes logoFlicker { 0%,100%{opacity:1} 94%{opacity:1} 95%{opacity:0.65} 96%{opacity:1} }
         .start-subtitle {
             font-family: 'Rajdhani', sans-serif;
-            font-size: clamp(14px, 3vw, 22px);
-            color: rgba(0,255,150,0.7);
-            letter-spacing: 8px;
-            text-transform: uppercase;
-            margin: 12px 0 40px;
-            position: relative; z-index: 1;
+            font-size: clamp(11px, 2.5vw, 18px); color: rgba(255,196,0,0.75);
+            letter-spacing: 7px; text-transform: uppercase;
+            margin: 8px 0 44px; position: relative; z-index: 1;
         }
-
         .mission-brief {
-            background: rgba(0,255,150,0.05);
-            border: 1px solid rgba(0,255,150,0.2);
-            border-radius: 4px;
-            padding: 20px 40px;
-            margin-bottom: 40px;
-            position: relative; z-index: 1;
-            backdrop-filter: blur(10px);
+            background: rgba(255,107,0,0.07); border: 1px solid rgba(255,107,0,0.28);
+            border-radius: 4px; padding: 18px 36px; margin-bottom: 38px;
+            position: relative; z-index: 1; backdrop-filter: blur(10px);
         }
-
-        .mission-brief p {
-            color: rgba(255,255,255,0.7);
-            font-size: 16px;
-            letter-spacing: 2px;
-        }
-
-        .mission-brief .mission-title {
-            color: #00ff96;
-            font-size: 12px;
-            letter-spacing: 4px;
-            margin-bottom: 8px;
-            opacity: 0.7;
-        }
-
+        .mission-brief p { color: rgba(255,255,255,0.72); font-size: 15px; letter-spacing: 1px; }
+        .mission-brief .mission-title { color: #FF8C00; font-size: 11px; letter-spacing: 4px; margin-bottom: 8px; }
         .start-btn {
-            font-family: 'Orbitron', sans-serif;
-            font-size: 18px;
-            font-weight: 700;
-            letter-spacing: 4px;
-            padding: 18px 60px;
-            background: transparent;
-            color: #00ff96;
-            border: 2px solid #00ff96;
-            border-radius: 2px;
-            cursor: pointer;
-            position: relative; z-index: 1;
-            text-transform: uppercase;
-            clip-path: polygon(8px 0%, 100% 0%, calc(100% - 8px) 100%, 0% 100%);
-            transition: all 0.3s ease;
-            box-shadow: 0 0 20px rgba(0,255,150,0.3), inset 0 0 20px rgba(0,255,150,0.05);
+            font-family: 'Orbitron', sans-serif; font-size: 18px; font-weight: 700;
+            letter-spacing: 4px; padding: 16px 64px;
+            background: linear-gradient(135deg, #FF6B00, #FF9500);
+            color: #fff; border: none; border-radius: 4px; cursor: pointer;
+            position: relative; z-index: 1; text-transform: uppercase;
+            clip-path: polygon(10px 0%, 100% 0%, calc(100% - 10px) 100%, 0% 100%);
+            box-shadow: 0 4px 24px rgba(255,107,0,0.55), 0 0 50px rgba(255,107,0,0.2);
+            transition: all 0.25s ease;
         }
-
         .start-btn:hover, .start-btn:active {
-            background: rgba(0,255,150,0.15);
-            box-shadow: 0 0 40px rgba(0,255,150,0.5), inset 0 0 30px rgba(0,255,150,0.1);
+            background: linear-gradient(135deg, #FF8C00, #FFB300);
+            box-shadow: 0 6px 36px rgba(255,107,0,0.75), 0 0 70px rgba(255,107,0,0.3);
             transform: scale(1.05);
         }
-
-        .corner-deco {
-            position: absolute;
-            width: 60px; height: 60px;
-            border-color: rgba(0,255,150,0.4);
-            border-style: solid;
-        }
-        .corner-deco.tl { top: 20px; left: 20px; border-width: 2px 0 0 2px; }
-        .corner-deco.tr { top: 20px; right: 20px; border-width: 2px 2px 0 0; }
-        .corner-deco.bl { bottom: 20px; left: 20px; border-width: 0 0 2px 2px; }
-        .corner-deco.br { bottom: 20px; right: 20px; border-width: 0 2px 2px 0; }
+        .corner-deco { position: absolute; width: 50px; height: 50px; border-color: rgba(255,107,0,0.55); border-style: solid; }
+        .corner-deco.tl { top: 16px; left: 16px; border-width: 2px 0 0 2px; }
+        .corner-deco.tr { top: 16px; right: 16px; border-width: 2px 2px 0 0; }
+        .corner-deco.bl { bottom: 16px; left: 16px; border-width: 0 0 2px 2px; }
+        .corner-deco.br { bottom: 16px; right: 16px; border-width: 0 2px 2px 0; }
 
         /* ── HUD ── */
-        #hud {
-            position: fixed;
-            inset: 0;
-            pointer-events: none;
-            z-index: 10;
-        }
-
-        /* Top Bar */
+        #hud { position: fixed; inset: 0; pointer-events: none; z-index: 10; }
         .hud-top {
-            position: absolute;
-            top: 0; left: 0; right: 0;
-            height: 60px;
-            background: linear-gradient(to bottom, rgba(0,0,0,0.7), transparent);
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 0 20px;
+            position: absolute; top: 0; left: 0; right: 0; height: 56px;
+            background: linear-gradient(to bottom, rgba(0,0,0,0.75), transparent);
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 0 14px 0 120px;
+        }
+        .hud-enemies { font-family: 'Orbitron', sans-serif; font-size: 12px; color: rgba(255,255,255,0.8); display: flex; align-items: center; gap: 8px; letter-spacing: 2px; }
+        .enemies-count { font-size: 22px; font-weight: 700; color: #FF6B00; text-shadow: 0 0 10px rgba(255,107,0,0.6); }
+        .hud-zone { font-family: 'Orbitron', sans-serif; font-size: 10px; color: #5BA3E8; letter-spacing: 2px; text-align: right; }
+        .zone-timer { font-size: 20px; font-weight: 700; color: #5BA3E8; }
+
+        /* ── MINIMAP ── */
+        #minimap-wrap {
+            position: absolute; top: 10px; left: 14px;
+            width: 94px; height: 94px; border-radius: 50%; overflow: hidden;
+            border: 2px solid rgba(255,107,0,0.65);
+            box-shadow: 0 0 14px rgba(255,107,0,0.35), inset 0 0 8px rgba(0,0,0,0.5);
+            z-index: 30; pointer-events: none;
+        }
+        #minimap { width: 94px; height: 94px; display: block; }
+        #minimap-n {
+            position: absolute; top: 2px; left: 50%; transform: translateX(-50%);
+            font-family: 'Orbitron', sans-serif; font-size: 8px; color: #FF6B00; font-weight: 700;
+            z-index: 31; pointer-events: none;
         }
 
-        .hud-kills {
+        /* ── HP + ARMOR (bottom-left) ── */
+        .hud-status {
+            position: absolute; bottom: 205px; left: 14px;
+            display: flex; align-items: flex-end; gap: 10px;
+        }
+        .hud-avatar {
+            width: 44px; height: 44px; border-radius: 50%;
+            border: 2px solid rgba(255,107,0,0.7);
+            background: radial-gradient(circle, #3a2010, #1a0a00);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 20px; flex-shrink: 0;
+        }
+        .hud-bars { display: flex; flex-direction: column; gap: 5px; }
+        .bar-row { display: flex; align-items: center; gap: 5px; }
+        .bar-icon { font-size: 9px; width: 12px; text-align: center; flex-shrink: 0; }
+        .bar-track { width: 116px; height: 6px; background: rgba(255,255,255,0.1); border-radius: 3px; overflow: hidden; }
+        .bar-fill { height: 100%; border-radius: 3px; transition: width 0.3s ease; }
+        .hp-fill  { background: linear-gradient(to right, #FF2D55, #FF6B80); }
+        .arm-fill { background: linear-gradient(to right, #4CD964, #7AE68A); }
+        .bar-val  { font-family: 'Orbitron', sans-serif; font-size: 10px; font-weight: 700; width: 24px; text-align: right; flex-shrink: 0; }
+        .hp-val-el  { color: #FF6B80; }
+        .arm-val-el { color: #4CD964; }
+
+        /* ── WEAPON PANEL (bottom-right) ── */
+        #weapon-panel {
+            position: fixed; bottom: 244px; right: 16px;
+            display: flex; flex-direction: column; align-items: flex-end; gap: 2px;
+            z-index: 20; pointer-events: none;
+        }
+        .wp-gun-name { font-family: 'Orbitron', sans-serif; font-size: 9px; letter-spacing: 2px; color: #FF8C00; }
+        .wp-ammo { font-family: 'Orbitron', sans-serif; font-size: 26px; font-weight: 700; color: #fff; line-height: 1; }
+        .wp-ammo .ammo-sep { font-size: 15px; color: rgba(255,255,255,0.3); margin: 0 2px; }
+        .wp-ammo .ammo-max { font-size: 15px; color: rgba(255,255,255,0.4); }
+        .ammo-cur.low { color: #FF2D55 !important; animation: ammoFlash 0.5s ease infinite alternate; }
+        @keyframes ammoFlash { from{opacity:1} to{opacity:0.3} }
+        #gun-name-display { font-family:'Orbitron',sans-serif; font-size:9px; letter-spacing:2px; color:#FF8C00; margin-bottom:2px; display:block; text-align:right; }
+
+        /* ── GUN SELECTOR ── */
+        #gun-selector {
+            position: fixed; bottom: 200px; right: 130px;
+            display: flex; flex-direction: column; gap: 4px;
+            z-index: 30; pointer-events: all;
+        }
+        .gun-slot {
+            width: 58px; height: 26px; border-radius: 4px;
+            border: 1.5px solid rgba(255,255,255,0.18);
+            background: rgba(0,0,0,0.6);
+            display: flex; flex-direction: row;
+            align-items: center; justify-content: space-between;
+            padding: 0 7px; cursor: pointer;
             font-family: 'Orbitron', sans-serif;
-            font-size: 22px;
-            font-weight: 700;
-            color: #fff;
-            display: flex;
-            align-items: center;
-            gap: 10px;
+            transition: border-color 0.15s, background 0.15s;
+            touch-action: manipulation;
         }
+        .gun-slot .gs-key  { font-size: 7px; letter-spacing: 1px; color: rgba(255,255,255,0.45); }
+        .gun-slot .gs-ammo { font-size: 8px; font-weight: 700; color: rgba(255,255,255,0.65); }
+        .gun-slot.active { border-color: #FF6B00; background: rgba(255,107,0,0.22); }
+        .gun-slot.active .gs-key  { color: #FF9500; }
+        .gun-slot.active .gs-ammo { color: #fff; }
+        .gun-slot.empty .gs-ammo  { color: #FF2D55; }
 
-        .hud-kills .kill-icon {
-            width: 8px; height: 8px;
-            background: #ff4444;
-            border-radius: 50%;
-            box-shadow: 0 0 8px #ff4444;
-        }
-
-        .kill-num {
-            color: #ff4444;
-            text-shadow: 0 0 10px rgba(255,68,68,0.8);
-        }
-
-        .kill-total { color: rgba(255,255,255,0.4); }
-
-        /* Kill indicators (small boxes) */
-        .kill-pips {
-            display: flex;
-            gap: 4px;
-            align-items: center;
-        }
-
-        .kill-pip {
-            width: 12px;
-            height: 16px;
-            border: 1px solid rgba(255,255,255,0.25);
-            border-radius: 2px;
-            background: transparent;
-            transition: all 0.3s ease;
-        }
-
-        .kill-pip.filled {
-            background: #ff4444;
-            border-color: #ff4444;
-            box-shadow: 0 0 6px rgba(255,68,68,0.7);
-        }
-
-        .hud-ammo {
-            font-family: 'Orbitron', sans-serif;
-            font-size: 28px;
-            font-weight: 700;
-            color: #fff;
-            text-align: right;
-        }
-
-        .hud-ammo .ammo-label {
-            font-size: 10px;
-            color: rgba(255,255,255,0.4);
-            letter-spacing: 3px;
-            display: block;
-        }
-
-        /* Health Bar - Bottom Left */
-        .hud-health {
-            position: absolute;
-            bottom: 200px;
-            left: 20px;
-        }
-
-        .health-label {
-            font-size: 10px;
-            letter-spacing: 3px;
-            color: rgba(255,255,255,0.5);
-            margin-bottom: 4px;
-        }
-
-        .health-bar-wrap {
-            width: 160px;
-            height: 8px;
-            background: rgba(255,255,255,0.1);
-            border: 1px solid rgba(255,255,255,0.2);
-            border-radius: 2px;
-            overflow: visible;
-            position: relative;
-        }
-
-        .health-bar-fill {
-            height: 100%;
-            background: linear-gradient(to right, #ff4444, #ff6666);
-            border-radius: 2px;
-            width: 100%;
-            transition: width 0.3s ease;
-            position: relative;
-        }
-
-        .health-bar-fill::after {
-            content: '';
-            position: absolute;
-            right: 0; top: -2px;
-            width: 3px; height: 12px;
-            background: #fff;
-            border-radius: 2px;
-            box-shadow: 0 0 8px #ff4444;
-        }
-
-        .health-value {
-            font-family: 'Orbitron', sans-serif;
-            font-size: 14px;
-            color: #ff4444;
-            margin-top: 4px;
-        }
-
-        /* Crosshair */
+        /* ── CROSSHAIR ── */
         #crosshair {
-            position: fixed;
-            top: 50%; left: 50%;
+            position: fixed; top: 50%; left: 50%;
             transform: translate(-50%, -50%);
             pointer-events: none;
             z-index: 15;
         }
-
-        .crosshair-ring {
-            width: 40px; height: 40px;
-            border: 1.5px solid rgba(255,255,255,0.5);
-            border-radius: 50%;
-            position: relative;
-            display: flex; align-items: center; justify-content: center;
-        }
-
-        .crosshair-dot {
-            width: 4px; height: 4px;
-            background: rgba(255,255,255,0.9);
-            border-radius: 50%;
-        }
-
-        .crosshair-line {
-            position: absolute;
-            background: rgba(255,255,255,0.5);
-        }
-        .crosshair-line.h { width: 10px; height: 1px; }
-        .crosshair-line.v { width: 1px; height: 10px; }
+        .crosshair-ring { width: 34px; height: 34px; border: 1.5px solid rgba(255,200,80,0.65); border-radius: 50%; position: relative; display: flex; align-items: center; justify-content: center; }
+        .crosshair-dot  { width: 3px; height: 3px; background: rgba(255,200,80,0.95); border-radius: 50%; }
+        .crosshair-line { position: absolute; background: rgba(255,200,80,0.55); }
+        .crosshair-line.h { width: 8px; height: 1px; }
+        .crosshair-line.v { width: 1px; height: 8px; }
         .crosshair-line.l { right: calc(100% + 4px); top: 50%; transform: translateY(-50%); }
         .crosshair-line.r { left: calc(100% + 4px); top: 50%; transform: translateY(-50%); }
         .crosshair-line.t { bottom: calc(100% + 4px); left: 50%; transform: translateX(-50%); }
         .crosshair-line.b { top: calc(100% + 4px); left: 50%; transform: translateX(-50%); }
 
-        /* Hit flash */
-        #hit-flash {
-            position: fixed; inset: 0;
-            background: rgba(255,0,0,0.25);
-            pointer-events: none;
-            z-index: 50;
-            opacity: 0;
-            transition: opacity 0.05s;
+        /* ── EFFECTS ── */
+        #hit-flash  { position:fixed;inset:0;background:rgba(255,45,85,0.28);pointer-events:none;z-index:50;opacity:0;transition:opacity 0.05s; }
+        #kill-flash { position:fixed;inset:0;background:rgba(255,107,0,0.12);pointer-events:none;z-index:50;opacity:0;transition:opacity 0.05s; }
+        #zone-flash { position:fixed;inset:0;border:5px solid rgba(74,144,217,0.65);pointer-events:none;z-index:49;opacity:0;transition:opacity 0.5s; }
+        #muzzle-flash { position:fixed;inset:0;background:radial-gradient(circle at 50% 55%,rgba(255,200,50,0.18),transparent 40%);pointer-events:none;z-index:40;opacity:0; }
+        #kill-notify {
+            position:fixed;top:70px;left:50%;transform:translateX(-50%);
+            font-family:'Orbitron',sans-serif;font-size:13px;font-weight:700;
+            color:#FF6B00;letter-spacing:3px;padding:6px 18px;
+            background:rgba(255,107,0,0.12);border:1px solid rgba(255,107,0,0.45);border-radius:2px;
+            z-index:30;pointer-events:none;opacity:0;transition:opacity 0.3s;
         }
+        #kill-notify.show { opacity:1; }
 
-        #kill-flash {
-            position: fixed; inset: 0;
-            background: rgba(0,255,150,0.1);
-            pointer-events: none;
-            z-index: 50;
-            opacity: 0;
-            transition: opacity 0.05s;
+        /* ── KILL FEED ── */
+        #kill-feed { position:absolute;top:58px;right:12px;display:flex;flex-direction:column;gap:3px;z-index:25;pointer-events:none;max-width:150px; }
+        .kf-entry {
+            font-family:'Rajdhani',sans-serif;font-size:11px;font-weight:600;
+            color:rgba(255,255,255,0.88);background:rgba(0,0,0,0.55);
+            border-left:2px solid #FF6B00;padding:2px 6px;border-radius:0 2px 2px 0;
+            animation:kfFade 3.5s ease forwards;white-space:nowrap;
         }
+        @keyframes kfFade { 0%,60%{opacity:1} 100%{opacity:0} }
 
         /* ── MOBILE CONTROLS ── */
         #joystick-area {
-            position: fixed;
-            bottom: 50px; left: 40px;
-            width: 120px; height: 120px;
-            background: radial-gradient(circle, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.03) 70%);
-            border: 1.5px solid rgba(255,255,255,0.15);
-            border-radius: 50%;
-            touch-action: none;
-            z-index: 20;
+            position:fixed;bottom:38px;left:26px;width:130px;height:130px;
+            background:radial-gradient(circle,rgba(255,107,0,0.1) 0%,rgba(255,107,0,0.04) 70%);
+            border:1.5px solid rgba(255,107,0,0.28);border-radius:50%;touch-action:none;z-index:20;
         }
-
         #joystick-knob {
-            position: absolute;
-            top: 35px; left: 35px;
-            width: 50px; height: 50px;
-            background: radial-gradient(circle, rgba(255,255,255,0.4) 0%, rgba(255,255,255,0.15) 100%);
-            border: 1.5px solid rgba(255,255,255,0.4);
-            border-radius: 50%;
-            pointer-events: none;
-            transition: transform 0.05s;
-            box-shadow: 0 0 15px rgba(255,255,255,0.1);
+            position:absolute;top:40px;left:40px;width:50px;height:50px;
+            background:radial-gradient(circle,rgba(255,150,50,0.55) 0%,rgba(180,60,0,0.4) 100%);
+            border:2px solid rgba(255,150,50,0.55);border-radius:50%;pointer-events:none;
+            transition:transform 0.05s;box-shadow:0 0 14px rgba(255,107,0,0.2);
         }
 
         /* ── RIGHT CONTROL CLUSTER ── */
-        #right-controls {
-            position: fixed;
-            bottom: 30px; right: 20px;
-            width: 220px; height: 200px;
-            z-index: 20;
-            pointer-events: none;
-        }
-
+        #right-controls { position:fixed;bottom:22px;right:14px;width:250px;height:220px;z-index:20;pointer-events:none; }
         .ctrl-btn {
-            position: absolute;
-            display: flex; flex-direction: column;
-            align-items: center; justify-content: center;
-            border-radius: 50%;
-            color: white;
-            font-family: 'Orbitron', sans-serif;
-            font-weight: 700;
-            letter-spacing: 1px;
-            touch-action: none;
-            pointer-events: all;
-            cursor: pointer;
-            -webkit-tap-highlight-color: transparent;
-            transition: transform 0.08s, box-shadow 0.08s;
-            user-select: none;
-            -webkit-user-select: none;
+            position:absolute;display:flex;flex-direction:column;align-items:center;justify-content:center;
+            border-radius:50%;color:white;font-family:'Orbitron',sans-serif;font-weight:700;letter-spacing:1px;
+            touch-action:none;pointer-events:all;cursor:pointer;-webkit-tap-highlight-color:transparent;
+            transition:transform 0.08s,box-shadow 0.08s;user-select:none;-webkit-user-select:none;
         }
+        .ctrl-btn:active { transform:scale(0.88); }
 
-        .ctrl-btn:active { transform: scale(0.90); }
-
-        /* FIRE — large, bottom-right */
+        /* FIRE — large orange, bottom-right */
         #fire-btn {
-            width: 92px; height: 92px;
-            bottom: 0; right: 0;
-            background: radial-gradient(circle, rgba(255,60,60,0.75) 0%, rgba(160,10,10,0.85) 100%);
-            border: 2.5px solid rgba(255,110,110,0.7);
-            font-size: 13px;
-            box-shadow: 0 0 22px rgba(255,50,50,0.5), inset 0 1px 0 rgba(255,255,255,0.2);
+            width:98px;height:98px;bottom:0;right:0;
+            background:radial-gradient(circle,rgba(255,120,0,0.88) 0%,rgba(170,40,0,0.96) 100%);
+            border:3px solid rgba(255,160,50,0.85);font-size:14px;
+            box-shadow:0 0 32px rgba(255,107,0,0.65),inset 0 1px 0 rgba(255,255,255,0.2);
         }
-
-        #fire-btn:active {
-            box-shadow: 0 0 40px rgba(255,50,50,0.8), inset 0 0 18px rgba(0,0,0,0.4);
-        }
+        #fire-btn:active { box-shadow:0 0 55px rgba(255,107,0,0.95),inset 0 0 22px rgba(0,0,0,0.4); }
 
         /* JUMP — top-right */
-        #jump-btn {
-            width: 68px; height: 68px;
-            top: 0; right: 10px;
-            background: radial-gradient(circle, rgba(80,160,255,0.6) 0%, rgba(20,80,180,0.75) 100%);
-            border: 2px solid rgba(100,180,255,0.6);
-            font-size: 11px;
-            box-shadow: 0 0 16px rgba(80,160,255,0.4);
-        }
+        #jump-btn { width:64px;height:64px;top:0;right:16px;background:radial-gradient(circle,rgba(74,144,217,0.7) 0%,rgba(20,80,190,0.85) 100%);border:2px solid rgba(120,180,255,0.6);font-size:10px;box-shadow:0 0 14px rgba(74,144,217,0.4); }
 
-        /* RELOAD — bottom-left of cluster */
-        #reload-btn {
-            width: 68px; height: 68px;
-            bottom: 10px; left: 0;
-            background: radial-gradient(circle, rgba(255,180,0,0.6) 0%, rgba(180,100,0,0.75) 100%);
-            border: 2px solid rgba(255,200,80,0.6);
-            font-size: 10px;
-            box-shadow: 0 0 16px rgba(255,180,0,0.35);
-        }
+        /* RELOAD */
+        #reload-btn { width:58px;height:58px;bottom:18px;left:28px;background:radial-gradient(circle,rgba(255,196,0,0.65) 0%,rgba(160,100,0,0.85) 100%);border:2px solid rgba(255,215,80,0.65);font-size:9px;box-shadow:0 0 13px rgba(255,196,0,0.35); }
+        #reload-btn.reloading { animation:reloadSpin 1.8s linear;opacity:0.6; }
+        @keyframes reloadSpin { from{filter:hue-rotate(0deg)} to{filter:hue-rotate(360deg)} }
 
-        #reload-btn.reloading {
-            animation: reloadSpin 1.8s linear;
-            opacity: 0.6;
-        }
+        /* CROUCH */
+        #crouch-btn { width:54px;height:54px;bottom:84px;left:20px;background:radial-gradient(circle,rgba(120,200,120,0.5) 0%,rgba(20,100,20,0.72) 100%);border:2px solid rgba(140,225,140,0.5);font-size:9px;box-shadow:0 0 11px rgba(100,200,100,0.25); }
+        #crouch-btn.active { background:radial-gradient(circle,rgba(50,210,50,0.78) 0%,rgba(10,120,10,0.92) 100%);box-shadow:0 0 20px rgba(50,230,50,0.6); }
 
-        @keyframes reloadSpin {
-            from { filter: hue-rotate(0deg); }
-            to   { filter: hue-rotate(360deg); }
-        }
+        /* HEAL */
+        #heal-btn { width:62px;height:62px;top:10px;left:6px;background:radial-gradient(circle,rgba(255,107,0,0.6) 0%,rgba(140,50,0,0.8) 100%);border:2px solid rgba(255,155,50,0.6);font-size:10px;box-shadow:0 0 14px rgba(255,107,0,0.38);position:relative;overflow:hidden; }
+        #heal-btn.healing { animation:healPulse 0.5s ease-in-out infinite alternate; }
+        @keyframes healPulse { from{box-shadow:0 0 10px rgba(255,107,0,0.35)} to{box-shadow:0 0 28px rgba(255,155,50,0.9)} }
+        #heal-btn.cooldown { opacity:0.38; }
+        #heal-cooldown-ring { position:absolute;inset:-2px;border-radius:50%;background:conic-gradient(rgba(0,0,0,0) 0%,rgba(0,0,0,0) 0%,rgba(0,0,0,0.55) 0%);pointer-events:none;transition:none; }
 
-        /* CROUCH — middle-left of cluster */
-        #crouch-btn {
-            width: 58px; height: 58px;
-            bottom: 72px; left: 14px;
-            background: radial-gradient(circle, rgba(140,255,140,0.45) 0%, rgba(20,120,20,0.65) 100%);
-            border: 2px solid rgba(140,255,140,0.5);
-            font-size: 9px;
-            box-shadow: 0 0 12px rgba(100,255,100,0.3);
-        }
+        /* GRENADE */
+        #nade-btn { width:54px;height:54px;bottom:84px;right:100px;background:radial-gradient(circle,rgba(255,200,0,0.65) 0%,rgba(150,100,0,0.85) 100%);border:2px solid rgba(255,220,50,0.65);font-size:9px;box-shadow:0 0 12px rgba(255,200,0,0.32); }
+        #nade-btn.empty { opacity:0.3; }
+        #nade-count { position:fixed;bottom:98px;right:98px;font-family:'Orbitron',sans-serif;font-size:10px;font-weight:700;color:#FFC107;z-index:30;pointer-events:none;background:rgba(0,0,0,0.65);border-radius:50%;width:18px;height:18px;display:flex;align-items:center;justify-content:center; }
 
-        #crouch-btn.active {
-            background: radial-gradient(circle, rgba(50,200,50,0.7) 0%, rgba(10,100,10,0.85) 100%);
-            box-shadow: 0 0 20px rgba(50,255,50,0.6);
-        }
+        /* AIM / ADS */
+        #aim-btn { width:62px;height:62px;bottom:12px;right:110px;background:radial-gradient(circle,rgba(160,160,160,0.5) 0%,rgba(60,60,60,0.78) 100%);border:2px solid rgba(200,200,200,0.42);font-size:9px;box-shadow:0 0 11px rgba(160,160,160,0.2); }
+        #aim-btn.active { background:radial-gradient(circle,rgba(255,196,0,0.65) 0%,rgba(150,100,0,0.85) 100%);border-color:rgba(255,215,80,0.7);box-shadow:0 0 18px rgba(255,196,0,0.5); }
 
-        /* HEAL — top-left of cluster */
-        #heal-btn {
-            width: 66px; height: 66px;
-            top: 0; left: 0;
-            background: radial-gradient(circle, rgba(60,220,180,0.6) 0%, rgba(10,130,100,0.8) 100%);
-            border: 2px solid rgba(80,255,200,0.6);
-            font-size: 10px;
-            box-shadow: 0 0 16px rgba(50,220,160,0.4);
-            position: relative;
-            overflow: hidden;
-        }
+        .btn-icon { font-size:18px;line-height:1;margin-bottom:2px; }
+        .btn-label { font-size:8px;letter-spacing:1px;opacity:0.85; }
 
-        #heal-btn.healing {
-            animation: healPulse 0.6s ease-in-out infinite alternate;
+        /* ── PROGRESS BARS ── */
+        #reload-bar-wrap,#heal-bar-wrap {
+            position:fixed;bottom:168px;left:50%;transform:translateX(-50%);
+            width:130px;height:5px;background:rgba(255,255,255,0.1);border-radius:3px;z-index:25;display:none;
         }
-
-        @keyframes healPulse {
-            from { box-shadow: 0 0 12px rgba(50,220,160,0.4); }
-            to   { box-shadow: 0 0 28px rgba(50,255,200,0.9); }
-        }
-
-        #heal-btn.cooldown {
-            opacity: 0.45;
-        }
-
-        /* Cooldown sweep overlay */
-        #heal-cooldown-ring {
-            position: absolute;
-            inset: -2px;
-            border-radius: 50%;
-            background: conic-gradient(rgba(0,0,0,0) 0%, rgba(0,0,0,0) 0%, rgba(0,0,0,0.55) 0%);
-            pointer-events: none;
-            transition: none;
-        }
-
-        /* Health regen bar */
-        #heal-bar-wrap {
-            position: fixed;
-            bottom: 175px; left: 50%; transform: translateX(-50%);
-            width: 140px; height: 6px;
-            background: rgba(255,255,255,0.1);
-            border: 1px solid rgba(50,220,160,0.4);
-            border-radius: 3px;
-            z-index: 25;
-            display: none;
-        }
-        #heal-bar-wrap.show { display: block; }
-        #heal-bar-fill {
-            height: 100%;
-            background: linear-gradient(to right, #00c896, #00ffcc);
-            border-radius: 3px;
-            width: 0%;
-        }
-        #heal-label {
-            position: fixed;
-            bottom: 185px; left: 50%; transform: translateX(-50%);
-            font-family: 'Orbitron', sans-serif;
-            font-size: 11px; letter-spacing: 3px;
-            color: #00ffcc;
-            z-index: 25;
-            display: none;
-            white-space: nowrap;
-        }
-        #heal-label.show { display: block; }
-
-        .btn-icon { font-size: 20px; line-height: 1; margin-bottom: 2px; }
-        .btn-label { font-size: 9px; letter-spacing: 1.5px; opacity: 0.85; }
-
-        /* ── AMMO HUD ── */
-        .hud-ammo-count {
-            font-family: 'Orbitron', sans-serif;
-            text-align: right;
-            line-height: 1.1;
-        }
-        .hud-ammo-count .ammo-cur {
-            font-size: 28px; font-weight: 700; color: #fff;
-        }
-        .hud-ammo-count .ammo-cur.low { color: #ff4444; animation: ammoFlash 0.5s ease infinite alternate; }
-        @keyframes ammoFlash { from { opacity: 1; } to { opacity: 0.3; } }
-        .hud-ammo-count .ammo-sep { font-size: 18px; color: rgba(255,255,255,0.3); margin: 0 3px; }
-        .hud-ammo-count .ammo-max { font-size: 18px; color: rgba(255,255,255,0.4); }
-        .hud-ammo-count .ammo-label { font-size: 9px; color: rgba(255,255,255,0.4); letter-spacing: 3px; display: block; margin-bottom: 2px; }
-        #gun-name-display {
-            font-family: 'Orbitron', sans-serif;
-            font-size: 9px; letter-spacing: 3px;
-            color: rgba(255,255,255,0.55);
-            margin-bottom: 3px;
-            display: block;
-            text-align: right;
-        }
-
-        /* Gun selector bar — bottom-centre above joystick */
-        #gun-selector {
-            position: fixed;
-            bottom: 248px; left: 50%; transform: translateX(-50%);
-            display: flex; gap: 6px;
-            z-index: 30;
-        }
-        .gun-slot {
-            width: 52px; height: 32px;
-            border-radius: 6px;
-            border: 1.5px solid rgba(255,255,255,0.2);
-            background: rgba(0,0,0,0.5);
-            display: flex; flex-direction: column;
-            align-items: center; justify-content: center;
-            cursor: pointer;
-            font-family: 'Orbitron', sans-serif;
-            transition: border-color 0.15s, background 0.15s;
-        }
-        .gun-slot .gs-key  { font-size: 8px; letter-spacing: 1px; color: rgba(255,255,255,0.5); }
-        .gun-slot .gs-ammo { font-size: 9px; font-weight: 700; color: rgba(255,255,255,0.7); }
-        .gun-slot.active {
-            border-color: #00ffcc;
-            background: rgba(0,255,200,0.15);
-        }
-        .gun-slot.active .gs-key  { color: #00ffcc; }
-        .gun-slot.active .gs-ammo { color: #fff; }
-        .gun-slot.empty .gs-ammo  { color: #ff4444; }
-
-        /* Reload bar */
-        #reload-bar-wrap {
-            position: fixed;
-            bottom: 175px; left: 50%; transform: translateX(-50%);
-            width: 140px; height: 6px;
-            background: rgba(255,255,255,0.1);
-            border: 1px solid rgba(255,255,255,0.2);
-            border-radius: 3px;
-            z-index: 25;
-            display: none;
-        }
-        #reload-bar-wrap.show { display: block; }
-        #reload-bar-fill {
-            height: 100%;
-            background: linear-gradient(to right, #ff9900, #ffcc00);
-            border-radius: 3px;
-            width: 0%;
-            transition: none;
-        }
-        #reload-label {
-            position: fixed;
-            bottom: 185px; left: 50%; transform: translateX(-50%);
-            font-family: 'Orbitron', sans-serif;
-            font-size: 11px; letter-spacing: 3px;
-            color: #ffcc00;
-            z-index: 25;
-            display: none;
-            white-space: nowrap;
-        }
-        #reload-label.show { display: block; }
+        #reload-bar-wrap { border:1px solid rgba(255,196,0,0.38); }
+        #heal-bar-wrap   { border:1px solid rgba(255,107,0,0.38);bottom:184px; }
+        #reload-bar-wrap.show,#heal-bar-wrap.show { display:block; }
+        #reload-bar-fill { height:100%;background:linear-gradient(to right,#FF6B00,#FFC107);border-radius:3px;width:0%; }
+        #heal-bar-fill   { height:100%;background:linear-gradient(to right,#FF6B00,#FF9500);border-radius:3px;width:0%; }
+        #reload-label,#heal-label { position:fixed;left:50%;transform:translateX(-50%);font-family:'Orbitron',sans-serif;font-size:10px;letter-spacing:3px;z-index:25;display:none;white-space:nowrap; }
+        #reload-label { bottom:178px;color:#FFC107; }
+        #heal-label   { bottom:194px;color:#FF8C00; }
+        #reload-label.show,#heal-label.show { display:block; }
 
         /* Jump indicator */
-        #jump-indicator {
-            position: fixed;
-            bottom: 215px; right: 55px;
-            font-family: 'Orbitron', sans-serif;
-            font-size: 10px; letter-spacing: 2px;
-            color: rgba(80,160,255,0.7);
-            z-index: 25;
-            pointer-events: none;
-            opacity: 0;
-            transition: opacity 0.2s;
-        }
-        #jump-indicator.show { opacity: 1; }
+        #jump-indicator { position:fixed;bottom:218px;right:58px;font-family:'Orbitron',sans-serif;font-size:9px;letter-spacing:2px;color:rgba(74,144,217,0.8);z-index:25;pointer-events:none;opacity:0;transition:opacity 0.2s; }
+        #jump-indicator.show { opacity:1; }
 
-        /* ── GAME OVER / WIN OVERLAY ── */
-        #end-screen {
-            position: fixed; inset: 0;
-            background: radial-gradient(ellipse at center, #0a0f1e 0%, #000 70%);
-            display: none;
-            flex-direction: column;
-            align-items: center; justify-content: center;
-            z-index: 150; text-align: center;
-        }
+        /* Zone warning */
+        #zone-warning { position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);font-family:'Orbitron',sans-serif;font-size:12px;letter-spacing:3px;color:#5BA3E8;z-index:30;pointer-events:none;opacity:0;transition:opacity 0.5s;text-shadow:0 0 12px rgba(74,144,217,0.8); }
+        #zone-warning.show { opacity:1; }
 
-        #end-screen.show { display: flex; }
+        /* Loot popup */
+        #loot-popup { position:fixed;bottom:185px;left:50%;transform:translateX(-50%);font-family:'Orbitron',sans-serif;font-size:11px;letter-spacing:2px;color:#FFC107;padding:7px 16px;background:rgba(0,0,0,0.72);border:1px solid rgba(255,196,0,0.42);border-radius:3px;z-index:30;pointer-events:none;opacity:0;transition:opacity 0.3s; }
+        #loot-popup.show { opacity:1; }
 
-        .end-title {
-            font-family: 'Orbitron', sans-serif;
-            font-size: clamp(28px, 7vw, 60px);
-            font-weight: 900;
-            letter-spacing: 6px;
-            margin-bottom: 16px;
-        }
-
-        .end-title.win { color: #00ff96; text-shadow: 0 0 30px rgba(0,255,150,0.8); }
-        .end-title.lose { color: #ff4444; text-shadow: 0 0 30px rgba(255,68,68,0.8); }
-
-        .end-sub {
-            color: rgba(255,255,255,0.5);
-            font-size: 16px;
-            letter-spacing: 4px;
-            margin-bottom: 50px;
-        }
-
-        /* ── KILL NOTIFICATION ── */
-        #kill-notify {
-            position: fixed;
-            top: 80px; left: 50%;
-            transform: translateX(-50%);
-            font-family: 'Orbitron', sans-serif;
-            font-size: 16px;
-            font-weight: 700;
-            color: #ff4444;
-            letter-spacing: 3px;
-            padding: 8px 20px;
-            background: rgba(255,0,0,0.1);
-            border: 1px solid rgba(255,0,0,0.3);
-            border-radius: 2px;
-            z-index: 30;
-            pointer-events: none;
-            opacity: 0;
-            transition: opacity 0.3s ease;
-        }
-
-        #kill-notify.show { opacity: 1; }
+        /* ── END SCREEN ── */
+        #end-screen { position:fixed;inset:0;background:radial-gradient(ellipse at center,#140800 0%,#000 70%);display:none;flex-direction:column;align-items:center;justify-content:center;z-index:150;text-align:center; }
+        #end-screen.show { display:flex; }
+        .end-title { font-family:'Orbitron',sans-serif;font-size:clamp(28px,7vw,64px);font-weight:900;letter-spacing:6px;margin-bottom:16px; }
+        .end-title.win  { color:#FF6B00;text-shadow:0 0 36px rgba(255,107,0,0.85); }
+        .end-title.lose { color:#FF2D55;text-shadow:0 0 30px rgba(255,45,85,0.8); }
+        .end-sub   { color:rgba(255,255,255,0.5);font-size:15px;letter-spacing:4px;margin-bottom:12px; }
+        .end-stats { color:rgba(255,196,0,0.8);font-size:13px;letter-spacing:2px;margin-bottom:36px; }
 
         /* ── COMPASS ── */
-        .hud-compass {
-            position: absolute;
-            top: 70px;
-            left: 50%;
-            transform: translateX(-50%);
-            font-family: 'Orbitron', sans-serif;
-            font-size: 11px;
-            color: rgba(255,255,255,0.4);
-            letter-spacing: 3px;
-            display: flex;
-            gap: 20px;
-        }
+        .hud-compass { position:absolute;top:66px;left:50%;transform:translateX(-50%);font-family:'Orbitron',sans-serif;font-size:10px;color:rgba(255,255,255,0.35);letter-spacing:3px;display:flex;gap:18px; }
+        .compass-n { color:#FF6B00;font-weight:700; }
 
-        .compass-n { color: #ff4444; font-weight: 700; }
-
-        /* Muzzle flash */
-        #muzzle-flash {
-            position: fixed; inset: 0;
-            background: radial-gradient(circle at 50% 55%, rgba(255,200,50,0.15), transparent 40%);
-            pointer-events: none;
-            z-index: 40;
-            opacity: 0;
-        }
-
-        /* ── ROTATE / FULLSCREEN OVERLAY ── */
-        #rotate-overlay {
-            position: fixed; inset: 0;
-            background: #000;
-            z-index: 999;
-            display: none;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            gap: 24px;
-        }
-
-        #rotate-overlay.show { display: flex; }
-
-        .rotate-icon {
-            width: 80px; height: 80px;
-            position: relative;
-            animation: rotatePhone 2s ease-in-out infinite;
-        }
-
-        @keyframes rotatePhone {
-            0%   { transform: rotate(0deg); }
-            40%  { transform: rotate(0deg); }
-            60%  { transform: rotate(90deg); }
-            100% { transform: rotate(90deg); }
-        }
-
-        .rotate-icon svg { width: 100%; height: 100%; }
-
-        .rotate-text {
-            font-family: 'Orbitron', sans-serif;
-            font-size: 14px;
-            letter-spacing: 4px;
-            color: rgba(0,255,150,0.8);
-            text-transform: uppercase;
-            text-align: center;
-        }
-
-        .rotate-sub {
-            font-family: 'Rajdhani', sans-serif;
-            font-size: 13px;
-            letter-spacing: 2px;
-            color: rgba(255,255,255,0.35);
-            text-align: center;
-        }
-
-        /* Fullscreen button */
+        /* ── ROTATE / FULLSCREEN ── */
+        #rotate-overlay { position:fixed;inset:0;background:#000;z-index:999;display:none;flex-direction:column;align-items:center;justify-content:center;gap:24px; }
+        #rotate-overlay.show { display:flex; }
+        .rotate-icon { width:80px;height:80px;animation:rotatePhone 2s ease-in-out infinite; }
+        @keyframes rotatePhone { 0%,40%{transform:rotate(0deg)} 60%,100%{transform:rotate(90deg)} }
+        .rotate-icon svg { width:100%;height:100%; }
+        .rotate-text { font-family:'Orbitron',sans-serif;font-size:13px;letter-spacing:4px;color:rgba(255,107,0,0.85);text-transform:uppercase; }
+        .rotate-sub  { font-family:'Rajdhani',sans-serif;font-size:12px;letter-spacing:2px;color:rgba(255,255,255,0.32); }
         #fullscreen-btn {
-            position: fixed;
-            top: 14px; right: 14px;
+            position:fixed;top:12px;right:12px;
             width: 38px; height: 38px;
             background: rgba(0,0,0,0.45);
             border: 1px solid rgba(255,255,255,0.2);
@@ -758,155 +326,158 @@
             transition: background 0.2s, border-color 0.2s;
         }
 
-        #fullscreen-btn:hover, #fullscreen-btn:active {
-            background: rgba(0,255,150,0.15);
-            border-color: rgba(0,255,150,0.5);
-        }
-
-        #fullscreen-btn svg { width: 18px; height: 18px; fill: rgba(255,255,255,0.7); }
+        #fullscreen-btn:hover,#fullscreen-btn:active { background:rgba(255,107,0,0.2);border-color:rgba(255,107,0,0.65); }
+        #fullscreen-btn svg { width:16px;height:16px;fill:rgba(255,255,255,0.7); }
     </style>
 </head>
 <body>
 
 <!-- Start Screen -->
 <div id="start-screen">
-    <div class="corner-deco tl"></div>
-    <div class="corner-deco tr"></div>
-    <div class="corner-deco bl"></div>
-    <div class="corner-deco br"></div>
-
-    <div class="start-logo">FIRE</div>
-    <div class="start-subtitle">Urban Warfare &#x2219; 3D</div>
-
+    <div class="corner-deco tl"></div><div class="corner-deco tr"></div>
+    <div class="corner-deco bl"></div><div class="corner-deco br"></div>
+    <div class="start-logo">FREE FIRE</div>
+    <div class="start-subtitle">Lone Survivor &#x2022; Battle Royale</div>
     <div class="mission-brief">
         <div class="mission-title">&#x25B6; MISSION BRIEFING</div>
-        <p>Eliminate all 10 enemy combatants</p>
-        <p style="margin-top:6px; font-size:13px; color:rgba(255,255,255,0.4);">Use joystick to move &#x2022; Swipe right side to aim &#x2022; FIRE to shoot</p>
+        <p>Eliminate all enemies &amp; survive the safe zone</p>
+        <p style="margin-top:6px;font-size:13px;color:rgba(255,255,255,0.4)">Joystick to move &#x2022; Swipe right to aim &#x2022; Orange button to FIRE</p>
     </div>
-
-    <button class="start-btn" onclick="startGame()">&#x25BA; START MISSION</button>
+    <button class="start-btn" onclick="startGame()">&#x25BA; PLAY</button>
 </div>
 
 <!-- End Screen -->
 <div id="end-screen">
-    <div class="corner-deco tl"></div>
-    <div class="corner-deco tr"></div>
-    <div class="corner-deco bl"></div>
-    <div class="corner-deco br"></div>
-    <div id="end-title" class="end-title">VICTORY</div>
-    <div id="end-sub" class="end-sub">MISSION ACCOMPLISHED</div>
+    <div class="corner-deco tl"></div><div class="corner-deco tr"></div>
+    <div class="corner-deco bl"></div><div class="corner-deco br"></div>
+    <div id="end-title" class="end-title">BOOYAH!</div>
+    <div id="end-sub" class="end-sub">VICTORY ROYALE</div>
+    <div id="end-stats" class="end-stats"></div>
     <button class="start-btn" onclick="location.reload()">&#x21BA; PLAY AGAIN</button>
 </div>
 
 <!-- HUD -->
 <div id="hud">
+    <div id="minimap-wrap"><canvas id="minimap" width="94" height="94"></canvas></div>
+    <div id="minimap-n">N</div>
     <div class="hud-top">
-        <div class="hud-kills">
-            <div class="kill-icon"></div>
-            <span>KILLS &nbsp;<span class="kill-num" id="kill-count">0</span><span class="kill-total">/10</span></span>
+        <div style="width:10px"></div>
+        <div class="hud-enemies">
+            <span style="font-size:10px;color:rgba(255,255,255,0.45)">ENEMIES</span>
+            <span class="enemies-count" id="enemies-left">10</span>
         </div>
-        <div class="kill-pips" id="kill-pips"></div>
-        <div class="hud-ammo-count">
-            <span id="gun-name-display">ASSAULT RIFLE</span>
-            <span class="ammo-label">AMMO</span>
-            <span class="ammo-cur" id="ammo-cur">30</span><span class="ammo-sep">/</span><span class="ammo-max" id="ammo-max">30</span>
+        <div class="hud-zone">
+            <div style="font-size:9px;letter-spacing:2px;color:rgba(91,163,232,0.7)">SAFE ZONE</div>
+            <div class="zone-timer" id="zone-timer">3:00</div>
         </div>
     </div>
-
+    <div id="kill-feed"></div>
     <div class="hud-compass">
         <span>W</span><span>NW</span><span class="compass-n">N</span><span>NE</span><span>E</span>
     </div>
-
-    <div class="hud-health">
-        <div class="health-label">SOLDIER HEALTH</div>
-        <div class="health-bar-wrap">
-            <div class="health-bar-fill" id="hp-fill"></div>
+    <div class="hud-status">
+        <div class="hud-avatar">&#x1F464;</div>
+        <div class="hud-bars">
+            <div class="bar-row">
+                <div class="bar-icon" style="color:#FF6B80">&#x2665;</div>
+                <div class="bar-track"><div class="bar-fill hp-fill" id="hp-fill" style="width:100%"></div></div>
+                <div class="bar-val hp-val-el" id="hp-val">100</div>
+            </div>
+            <div class="bar-row">
+                <div class="bar-icon" style="color:#4CD964">&#x1F6E1;</div>
+                <div class="bar-track"><div class="bar-fill arm-fill" id="arm-fill" style="width:0%"></div></div>
+                <div class="bar-val arm-val-el" id="arm-val">0</div>
+            </div>
         </div>
-        <div class="health-value" id="hp-val">100</div>
+    </div>
+</div>
+
+<!-- Weapon Panel -->
+<div id="weapon-panel">
+    <span id="gun-name-display">ASSAULT RIFLE</span>
+    <div class="wp-ammo">
+        <span class="ammo-cur" id="ammo-cur">30</span><span class="ammo-sep">/</span><span class="ammo-max" id="ammo-max">30</span>
     </div>
 </div>
 
 <!-- Crosshair -->
 <div id="crosshair">
     <div class="crosshair-ring">
-        <div class="crosshair-line h l"></div>
-        <div class="crosshair-line h r"></div>
-        <div class="crosshair-line v t"></div>
-        <div class="crosshair-line v b"></div>
+        <div class="crosshair-line h l"></div><div class="crosshair-line h r"></div>
+        <div class="crosshair-line v t"></div><div class="crosshair-line v b"></div>
         <div class="crosshair-dot"></div>
     </div>
 </div>
 
-<!-- Rotate to Landscape Overlay -->
+<!-- Rotate Overlay -->
 <div id="rotate-overlay">
     <div class="rotate-icon">
         <svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
-            <rect x="18" y="8" width="28" height="48" rx="4" ry="4" fill="none" stroke="rgba(0,255,150,0.8)" stroke-width="3"/>
-            <circle cx="32" cy="51" r="2.5" fill="rgba(0,255,150,0.6)"/>
-            <rect x="24" y="12" width="16" height="2" rx="1" fill="rgba(0,255,150,0.4)"/>
+            <rect x="18" y="8" width="28" height="48" rx="4" ry="4" fill="none" stroke="rgba(255,107,0,0.85)" stroke-width="3"/>
+            <circle cx="32" cy="51" r="2.5" fill="rgba(255,107,0,0.6)"/>
+            <rect x="24" y="12" width="16" height="2" rx="1" fill="rgba(255,107,0,0.4)"/>
         </svg>
     </div>
     <div class="rotate-text">Rotate Device</div>
-    <div class="rotate-sub">For the best experience, play in landscape mode</div>
+    <div class="rotate-sub">Play in landscape for best experience</div>
 </div>
 
-<!-- Fullscreen Button -->
+<!-- Fullscreen -->
 <div id="fullscreen-btn" onclick="toggleFullscreen()" title="Fullscreen">
-    <svg id="fs-icon-enter" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-        <path d="M3 3h6v2H5v4H3V3zm12 0h6v6h-2V5h-4V3zM3 15h2v4h4v2H3v-6zm16 4h-4v2h6v-6h-2v4z"/>
-    </svg>
-    <svg id="fs-icon-exit" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" style="display:none">
-        <path d="M5 16h3v3h2v-5H5v2zm3-8H5v2h5V5H8v3zm6 11h2v-3h3v-2h-5v5zm2-11V5h-2v5h5V8h-3z"/>
-    </svg>
+    <svg id="fs-icon-enter" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M3 3h6v2H5v4H3V3zm12 0h6v6h-2V5h-4V3zM3 15h2v4h4v2H3v-6zm16 4h-4v2h6v-6h-2v4z"/></svg>
+    <svg id="fs-icon-exit"  viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" style="display:none"><path d="M5 16h3v3h2v-5H5v2zm3-8H5v2h5V5H8v3zm6 11h2v-3h3v-2h-5v5zm2-11V5h-2v5h5V8h-3z"/></svg>
 </div>
 
 <!-- Effects -->
 <div id="hit-flash"></div>
 <div id="kill-flash"></div>
+<div id="zone-flash"></div>
 <div id="muzzle-flash"></div>
-<div id="kill-notify">ENEMY DOWN</div>
+<div id="kill-notify">&#x2620; ENEMY DOWN</div>
+<div id="zone-warning">&#x26A0; OUTSIDE SAFE ZONE</div>
+<div id="loot-popup">&#x25A3; LOOT — PRESS E</div>
 
 <!-- Mobile Controls -->
 <div id="joystick-area"><div id="joystick-knob"></div></div>
 
 <div id="right-controls">
-    <div class="ctrl-btn" id="heal-btn">
+    <div class="ctrl-btn" id="heal-btn" onclick="startHeal()">
         <div id="heal-cooldown-ring"></div>
-        <div class="btn-icon">&#x2665;</div>
-        <div class="btn-label">MEDKIT</div>
+        <div class="btn-icon">&#x2665;</div><div class="btn-label">MEDKIT</div>
     </div>
-    <div class="ctrl-btn" id="jump-btn">
-        <div class="btn-icon">&#x2B06;</div>
-        <div class="btn-label">JUMP</div>
+    <div class="ctrl-btn" id="jump-btn" onclick="doJump()">
+        <div class="btn-icon">&#x2B06;</div><div class="btn-label">JUMP</div>
     </div>
-    <div class="ctrl-btn" id="reload-btn">
-        <div class="btn-icon">&#x21BB;</div>
-        <div class="btn-label">RELOAD</div>
+    <div class="ctrl-btn" id="reload-btn" onclick="startReload()">
+        <div class="btn-icon">&#x21BB;</div><div class="btn-label">RELOAD</div>
     </div>
-    <div class="ctrl-btn" id="crouch-btn">
-        <div class="btn-icon">&#x1F9CE;</div>
-        <div class="btn-label">CROUCH</div>
+    <div class="ctrl-btn" id="crouch-btn" onclick="toggleCrouch()">
+        <div class="btn-icon">&#x1F9CE;</div><div class="btn-label">CROUCH</div>
+    </div>
+    <div class="ctrl-btn" id="nade-btn" onclick="throwGrenade()">
+        <div class="btn-icon">&#x1F4A3;</div><div class="btn-label">NADE</div>
+    </div>
+    <div class="ctrl-btn" id="aim-btn" onclick="toggleAim()">
+        <div class="btn-icon">&#x1F52D;</div><div class="btn-label">ADS</div>
     </div>
     <div class="ctrl-btn" id="fire-btn">
-        <div class="btn-icon">&#x1F4A5;</div>
-        <div class="btn-label">FIRE</div>
+        <div class="btn-icon">&#x1F4A5;</div><div class="btn-label">FIRE</div>
     </div>
 </div>
 
-<!-- Gun Selector Bar -->
+<!-- Gun Selector -->
 <div id="gun-selector">
     <div class="gun-slot active" id="gs-0" onclick="switchGun(0)"><span class="gs-key">AR</span><span class="gs-ammo" id="ga-0">30</span></div>
     <div class="gun-slot"        id="gs-1" onclick="switchGun(1)"><span class="gs-key">SG</span><span class="gs-ammo" id="ga-1">8</span></div>
     <div class="gun-slot"        id="gs-2" onclick="switchGun(2)"><span class="gs-key">SNP</span><span class="gs-ammo" id="ga-2">5</span></div>
     <div class="gun-slot"        id="gs-3" onclick="switchGun(3)"><span class="gs-key">SMG</span><span class="gs-ammo" id="ga-3">45</span></div>
 </div>
+<div id="nade-count">2</div>
 
-<!-- Reload UI -->
+<!-- Reload / Heal UI -->
 <div id="reload-label">RELOADING...</div>
 <div id="reload-bar-wrap"><div id="reload-bar-fill"></div></div>
 <div id="jump-indicator">AIRBORNE</div>
-
-<!-- Heal UI -->
 <div id="heal-label">&#x2665; HEALING...</div>
 <div id="heal-bar-wrap"><div id="heal-bar-fill"></div></div>
 
@@ -917,19 +488,11 @@
 <script type="module">
 import * as THREE from 'three';
 
-// ── INIT KILL PIPS ──
-const pipsContainer = document.getElementById('kill-pips');
-for (let i = 0; i < 10; i++) {
-    const pip = document.createElement('div');
-    pip.className = 'kill-pip';
-    pip.id = `pip-${i}`;
-    pipsContainer.appendChild(pip);
-}
-
 // ── STATE ──
 let gameActive = false;
 let kills = 0;
 let playerHp = 100;
+let playerArmor = 50; // armor absorbs 60% of incoming damage
 let enemies = [];
 let lookDeltaX = 0, lookDeltaY = 0;
 let moveX = 0, moveZ = 0;
@@ -968,6 +531,43 @@ function setAmmo(v)  { gunAmmo[currentGunIdx] = v; }
 let isReloading = false;
 let reloadStart = 0;
 let lastFootstep = 0;
+
+// ── SAFE ZONE ──
+const ZONE_TOTAL_TIME = 180; // 3 minutes to full collapse
+const ZONE_MAX_RADIUS = 90;  // world units
+const ZONE_MIN_RADIUS = 6;
+let zoneShrinkStart  = 0;
+let zoneOutsideDmgTimer = 0;
+
+// ── LOOT SYSTEM ──
+let lootItems = [];      // {mesh, pos, type}
+let nearbyLoot = null;
+
+// ── GRENADE ──
+let grenadeCount = 2;
+let lastGrenadeTime = -Infinity;
+const GRENADE_COOLDOWN = 12000;
+const GRENADE_RADIUS   = 5.5;
+
+// ── ADS (Aim Down Sights) ──
+let isAiming = false;
+const ADS_FOV    = 45;
+const NORMAL_FOV = 72;
+
+// ── MINIMAP ──
+const mmCanvas = document.getElementById('minimap');
+const mmCtx    = mmCanvas ? mmCanvas.getContext('2d') : null;
+
+// ── KILL FEED ──
+function addKillFeedEntry(gunType) {
+    const feed = document.getElementById('kill-feed');
+    if (!feed) return;
+    const el = document.createElement('div');
+    el.className = 'kf-entry';
+    el.textContent = `YOU ── ENEMY [${gunType}]`;
+    feed.appendChild(el);
+    setTimeout(() => el.remove(), 3500);
+}
 
 // Heal
 const HEAL_AMOUNT   = 50;     // HP restored per use
@@ -1695,10 +1295,17 @@ class Enemy {
             // Bobbing
             this.mesh.position.y = Math.abs(Math.sin(this.walkCycle)) * 0.06;
         } else {
-            // Combat — damage and fire-rate depend on the enemy's gun type
+            // Combat — armor absorbs 60% of damage; remainder hits HP
             const gs = ENEMY_GUN_STATS[this.gunType] || ENEMY_GUN_STATS.AR;
             if (Date.now() - this.lastShotTime > gs.interval) {
-                playerHp -= gs.dmg;
+                let dmg = gs.dmg;
+                if (playerArmor > 0) {
+                    const blocked = Math.min(playerArmor, Math.round(dmg * 0.6));
+                    playerArmor -= blocked;
+                    playerArmor = Math.max(0, playerArmor);
+                    dmg -= blocked;
+                }
+                playerHp -= dmg;
                 playerHp = Math.max(0, playerHp);
                 playHitSound();
                 flashEffect('hit-flash');
@@ -1754,9 +1361,10 @@ window.startGame = function() {
 
 function resetGame() {
     playerHp = 100;
+    playerArmor = 50;
     kills = 0;
     currentGunIdx = 0;
-    gunAmmo = [30, 8, 5, 45]; // reset all gun ammo to full
+    gunAmmo = [30, 8, 5, 45];
     isReloading = false;
     isHealing = false;
     healCooldownStart = -Infinity;
@@ -1768,6 +1376,23 @@ function resetGame() {
     enemies.forEach(e => scene.remove(e.mesh));
     enemies = [];
     for (let i = 0; i < 10; i++) enemies.push(new Enemy());
+    // Reset loot
+    lootItems.forEach(l => scene.remove(l.mesh));
+    lootItems = []; nearbyLoot = null;
+    // Reset grenade
+    grenadeCount = 2;
+    document.getElementById('nade-count').textContent = grenadeCount;
+    document.getElementById('nade-btn').classList.toggle('empty', grenadeCount === 0);
+    // Reset zone
+    zoneShrinkStart = Date.now();
+    zoneOutsideDmgTimer = 0;
+    // Reset ADS
+    isAiming = false;
+    camera.fov = NORMAL_FOV; camera.updateProjectionMatrix();
+    document.getElementById('aim-btn').classList.remove('active');
+    // Clear kill feed
+    const feed = document.getElementById('kill-feed');
+    if (feed) feed.innerHTML = '';
     updateAmmoHUD();
     document.getElementById('crouch-btn').classList.remove('active');
     document.getElementById('reload-label').classList.remove('show');
@@ -1782,33 +1407,37 @@ function resetGame() {
 }
 
 function updateUI() {
-    document.getElementById('kill-count').innerText = kills;
+    // HP bar
     document.getElementById('hp-fill').style.width = playerHp + '%';
     document.getElementById('hp-val').innerText = playerHp;
-
-    // Update pips
-    for (let i = 0; i < 10; i++) {
-        const pip = document.getElementById(`pip-${i}`);
-        if (pip) pip.classList.toggle('filled', i < kills);
-    }
+    // Armor bar
+    document.getElementById('arm-fill').style.width = playerArmor + '%';
+    document.getElementById('arm-val').innerText = playerArmor;
+    // Enemies remaining
+    const el = document.getElementById('enemies-left');
+    if (el) el.textContent = enemies.length;
 
     if (playerHp <= 0) {
         gameActive = false;
+        clearInterval(smgInterval); smgInterval = null;
         setTimeout(() => {
             document.getElementById('end-title').className = 'end-title lose';
             document.getElementById('end-title').textContent = 'ELIMINATED';
-            document.getElementById('end-sub').textContent = 'MISSION FAILED — ' + kills + ' KILLS';
+            document.getElementById('end-sub').textContent = 'YOU WERE KNOCKED OUT';
+            document.getElementById('end-stats').textContent = kills + ' KILLS • ' + Math.max(0, 10 - enemies.length) + '/10 ENEMIES DOWN';
             document.getElementById('end-screen').classList.add('show');
-        }, 500);
+        }, 600);
     }
     if (kills >= 10) {
         gameActive = false;
+        clearInterval(smgInterval); smgInterval = null;
         setTimeout(() => {
             document.getElementById('end-title').className = 'end-title win';
-            document.getElementById('end-title').textContent = 'VICTORY';
-            document.getElementById('end-sub').textContent = 'ALL ENEMIES ELIMINATED';
+            document.getElementById('end-title').textContent = 'BOOYAH!';
+            document.getElementById('end-sub').textContent = 'VICTORY ROYALE';
+            document.getElementById('end-stats').textContent = '10 KILLS • ALL CLEAR';
             document.getElementById('end-screen').classList.add('show');
-        }, 500);
+        }, 600);
     }
 }
 
@@ -1834,6 +1463,126 @@ function updateAmmoHUD() {
         slot.classList.toggle('empty', gunAmmo[i] === 0);
         ammoEl.textContent = gunAmmo[i];
     });
+}
+
+// ── GRENADE ──
+window.throwGrenade = function() {
+    if (!gameActive || grenadeCount <= 0) return;
+    const now = Date.now();
+    if (now - lastGrenadeTime < GRENADE_COOLDOWN) return;
+    grenadeCount--;
+    lastGrenadeTime = now;
+    document.getElementById('nade-count').textContent = grenadeCount;
+    document.getElementById('nade-btn').classList.toggle('empty', grenadeCount === 0);
+
+    // Visual — spawn a small sphere flying forward
+    const geo = new THREE.SphereGeometry(0.12, 6, 6);
+    const mat = new THREE.MeshStandardMaterial({ color: 0x444400, roughness: 0.6 });
+    const nade = new THREE.Mesh(geo, mat);
+    nade.position.copy(playerPivot.position);
+    nade.position.y += 0.5;
+
+    // Direction: forward in player yaw
+    const dir = new THREE.Vector3(
+        -Math.sin(playerYaw) * Math.cos(playerPitch),
+        Math.sin(playerPitch) + 0.15,
+        -Math.cos(playerYaw) * Math.cos(playerPitch)
+    ).normalize();
+    nade.velocity = dir.multiplyScalar(0.28);
+    scene.add(nade);
+
+    // Explode after 1.8s
+    setTimeout(() => {
+        scene.remove(nade);
+        // Explosion flash
+        flashEffect('kill-flash', 300);
+        // Damage all enemies within radius
+        for (let i = enemies.length - 1; i >= 0; i--) {
+            const dist = enemies[i].mesh.position.distanceTo(nade.position);
+            if (dist < GRENADE_RADIUS) {
+                const dmg = Math.ceil(3 * (1 - dist / GRENADE_RADIUS));
+                const dead = enemies[i].takeDamage(dmg);
+                if (dead) {
+                    addKillFeedEntry(enemies[i].gunType);
+                    scene.remove(enemies[i].mesh);
+                    spawnLoot(enemies[i].mesh.position.clone());
+                    enemies.splice(i, 1);
+                    kills++;
+                    playKillConfirm();
+                    flashEffect('kill-flash', 200);
+                    showKillNotify();
+                    updateUI();
+                }
+            }
+        }
+        updateAmmoHUD();
+    }, 1800);
+
+    // Update nade position each frame
+    nade.userData.active = true;
+    const update = () => {
+        if (!nade.userData.active) return;
+        nade.velocity.y -= 0.012;
+        nade.position.addScaledVector(nade.velocity, 1);
+        if (nade.position.y < 0.1) { nade.position.y = 0.1; nade.velocity.y = 0; }
+        requestAnimationFrame(update);
+    };
+    update();
+};
+
+// ── ADS (Aim Down Sights) ──
+window.toggleAim = function() {
+    if (!gameActive) return;
+    isAiming = !isAiming;
+    camera.fov = isAiming ? ADS_FOV : NORMAL_FOV;
+    camera.updateProjectionMatrix();
+    document.getElementById('aim-btn').classList.toggle('active', isAiming);
+};
+
+// ── LOOT PICKUP ──
+function pickupLoot() {
+    if (!nearbyLoot) return;
+    const { type, mesh } = nearbyLoot;
+    scene.remove(mesh);
+    const idx = lootItems.indexOf(nearbyLoot);
+    if (idx > -1) lootItems.splice(idx, 1);
+    nearbyLoot = null;
+    document.getElementById('loot-popup').classList.remove('show');
+
+    if (type === 'ammo') {
+        // Refill current gun's mag
+        const g = curGun();
+        setAmmo(g.mag);
+        updateAmmoHUD();
+        showKillNotify();
+        document.getElementById('kill-notify').textContent = '⬡ AMMO PICKED UP';
+        setTimeout(() => {
+            document.getElementById('kill-notify').textContent = '☠ ENEMY DOWN';
+        }, 1200);
+    } else {
+        // Restore armor up to 100
+        playerArmor = Math.min(100, playerArmor + 40);
+        updateUI();
+        showKillNotify();
+        document.getElementById('kill-notify').textContent = '🛡 ARMOR RESTORED';
+        setTimeout(() => {
+            document.getElementById('kill-notify').textContent = '☠ ENEMY DOWN';
+        }, 1200);
+    }
+}
+
+// ── LOOT SPAWN ──
+function spawnLoot(pos) {
+    const types = ['ammo', 'armor'];
+    const type = types[Math.floor(Math.random() * types.length)];
+    const color = type === 'ammo' ? 0xFFCC00 : 0x4CD964;
+    const geo = new THREE.BoxGeometry(0.4, 0.4, 0.4);
+    const mat = new THREE.MeshStandardMaterial({ color, emissive: color, emissiveIntensity: 0.5, roughness: 0.4 });
+    const mesh = new THREE.Mesh(geo, mat);
+    mesh.position.copy(pos);
+    mesh.position.y = 0.25;
+    scene.add(mesh);
+    lootItems.push({ mesh, pos: pos.clone(), type });
 }
 
 // ── SWITCH GUN ──
@@ -2035,8 +1784,11 @@ document.addEventListener('keydown', e => {
     if (e.code === 'Space')                    doJump();
     if (e.code === 'KeyR')                     startReload();
     if (e.code === 'KeyC')                     toggleCrouch();
-    if (e.code === 'KeyH')                     startHeal();
-    if (e.code === 'KeyF' || e.code === 'KeyE') shoot();
+    if (e.code === 'KeyH')  startHeal();
+    if (e.code === 'KeyF')  shoot();
+    if (e.code === 'KeyE') { if (nearbyLoot) pickupLoot(); else shoot(); }
+    if (e.code === 'KeyG')  throwGrenade();
+    if (e.code === 'KeyZ')                      toggleAim();
     if (e.code === 'Digit1') switchGun(0);
     if (e.code === 'Digit2') switchGun(1);
     if (e.code === 'Digit3') switchGun(2);
@@ -2057,6 +1809,8 @@ function fireOneRay(spreadX, spreadY, damage) {
         if (idx > -1) {
             const dead = enemies[idx].takeDamage(damage);
             if (dead) {
+                addKillFeedEntry(enemies[idx].gunType);
+                spawnLoot(enemies[idx].mesh.position.clone());
                 scene.remove(enemies[idx].mesh);
                 enemies.splice(idx, 1);
                 kills++;
@@ -2222,6 +1976,101 @@ function animate() {
 
     // Particles
     updateParticles();
+
+    // ── SAFE ZONE ──
+    const zoneNow = Date.now();
+    const zoneElapsed = Math.min((zoneNow - zoneShrinkStart) / 1000, ZONE_TOTAL_TIME);
+    const zoneRadius = ZONE_MAX_RADIUS - (ZONE_MAX_RADIUS - ZONE_MIN_RADIUS) * (zoneElapsed / ZONE_TOTAL_TIME);
+
+    // Timer display
+    const zoneRemaining = Math.max(0, Math.ceil(ZONE_TOTAL_TIME - zoneElapsed));
+    const zm = String(Math.floor(zoneRemaining / 60)).padStart(1,'0');
+    const zs = String(zoneRemaining % 60).padStart(2,'0');
+    const zTimerEl = document.getElementById('zone-timer');
+    if (zTimerEl) zTimerEl.textContent = zm + ':' + zs;
+
+    // Player outside zone damage (2 HP/sec)
+    const pPos = playerPivot.position;
+    const distFromCenter = Math.sqrt(pPos.x*pPos.x + pPos.z*pPos.z);
+    const outsideZone = distFromCenter > zoneRadius;
+    const zoneFlashEl  = document.getElementById('zone-flash');
+    const zoneWarnEl   = document.getElementById('zone-warning');
+    if (outsideZone) {
+        if (zoneFlashEl)  zoneFlashEl.style.opacity  = '1';
+        if (zoneWarnEl)   zoneWarnEl.classList.add('show');
+        zoneOutsideDmgTimer += dt;
+        if (zoneOutsideDmgTimer >= 0.5) {
+            zoneOutsideDmgTimer = 0;
+            playerHp = Math.max(0, playerHp - 1);
+            document.getElementById('hp-fill').style.width = playerHp + '%';
+            document.getElementById('hp-val').innerText = playerHp;
+            if (playerHp <= 0) updateUI();
+        }
+    } else {
+        if (zoneFlashEl)  zoneFlashEl.style.opacity  = '0';
+        if (zoneWarnEl)   zoneWarnEl.classList.remove('show');
+        zoneOutsideDmgTimer = 0;
+    }
+
+    // ── LOOT PROXIMITY CHECK ──
+    const LOOT_RANGE = 2.5;
+    nearbyLoot = null;
+    lootItems.forEach(l => {
+        l.mesh.rotation.y += 0.03; // spin
+        const d = pPos.distanceTo(l.pos);
+        if (d < LOOT_RANGE) nearbyLoot = l;
+    });
+    const lootPopEl = document.getElementById('loot-popup');
+    if (lootPopEl) lootPopEl.classList.toggle('show', nearbyLoot !== null);
+
+    // ── MINIMAP ──
+    if (mmCtx) {
+        const mm = 94;
+        const scale = mm / (ZONE_MAX_RADIUS * 2);
+        mmCtx.clearRect(0, 0, mm, mm);
+
+        // Background
+        mmCtx.fillStyle = 'rgba(10,15,10,0.85)';
+        mmCtx.beginPath(); mmCtx.arc(mm/2, mm/2, mm/2, 0, Math.PI*2); mmCtx.fill();
+
+        // Safe zone ring
+        const zr = Math.max(2, zoneRadius * scale);
+        mmCtx.strokeStyle = 'rgba(74,144,217,0.7)';
+        mmCtx.lineWidth = 1.5;
+        mmCtx.beginPath(); mmCtx.arc(mm/2, mm/2, zr, 0, Math.PI*2); mmCtx.stroke();
+
+        // Enemies
+        enemies.forEach(e => {
+            const ex = mm/2 + e.mesh.position.x * scale;
+            const ey = mm/2 + e.mesh.position.z * scale;
+            mmCtx.fillStyle = '#FF2D55';
+            mmCtx.beginPath(); mmCtx.arc(ex, ey, 2.5, 0, Math.PI*2); mmCtx.fill();
+        });
+
+        // Loot items
+        lootItems.forEach(l => {
+            const lx = mm/2 + l.pos.x * scale;
+            const ly = mm/2 + l.pos.z * scale;
+            mmCtx.fillStyle = l.type === 'ammo' ? '#FFC107' : '#4CD964';
+            mmCtx.fillRect(lx-2, ly-2, 4, 4);
+        });
+
+        // Player (center, white dot + direction arrow)
+        mmCtx.fillStyle = '#FFFFFF';
+        mmCtx.beginPath(); mmCtx.arc(mm/2, mm/2, 3.5, 0, Math.PI*2); mmCtx.fill();
+        // Direction indicator
+        const dirLen = 7;
+        const dx = -Math.sin(playerYaw) * dirLen;
+        const dz = -Math.cos(playerYaw) * dirLen;
+        mmCtx.strokeStyle = '#FF6B00';
+        mmCtx.lineWidth = 1.5;
+        mmCtx.beginPath(); mmCtx.moveTo(mm/2, mm/2); mmCtx.lineTo(mm/2+dx, mm/2+dz); mmCtx.stroke();
+
+        // Clip to circle
+        mmCtx.globalCompositeOperation = 'destination-in';
+        mmCtx.beginPath(); mmCtx.arc(mm/2, mm/2, mm/2, 0, Math.PI*2); mmCtx.fill();
+        mmCtx.globalCompositeOperation = 'source-over';
+    }
 
     renderer.render(scene, camera);
 }
